@@ -4,17 +4,25 @@
 
 결과 (data/public/):
   chunks.json   조각 목록 [{id, path, title, heading, text}]
-  vectors.npy   조각 임베딩 (정규화된 float32, 조각 순서와 같음)
+  vectors.npy         조각 임베딩 — 로컬 MiniLM (정규화된 float32, 조각 순서와 같음)
+  vectors_gemini.npy  조각 임베딩 — Gemini API (GOOGLE_API_KEY가 있을 때)
   graph.json    {"nodes": [...], "edges": [{"src", "dst", "rel"}]}
+
+임베딩 방식 HIVE_EMBED=local|gemini (비우면 local).
+  local  : 이 맥·평가용. 모델을 메모리에 올려 약 0.8GB가 필요하다.
+  gemini : 배포용(무료 서버 메모리 512MB). 질문 임베딩도 API로 만들어 모델을 올리지 않는다.
 """
 import json
+import os
 import re
 
 import numpy as np
 
 from .export import OUT
 
-MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"  # 한국어 지원, 0.22GB — 배포 서버에서도 돈다
+MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"  # 한국어 지원, 무료 로컬 실행
+GEMINI_MODEL = "gemini-embedding-001"
+GEMINI_DIM = 768
 CHUNK_CHARS = 500
 WIKILINK = re.compile(r"\[\[([^\]|#]+)")
 DOCLINK = re.compile(r'href="/doc/([^"#]+)"')
@@ -23,6 +31,7 @@ _model = None
 
 
 def embedder():
+    """원본 모델(fastembed) — 색인 만들기·경량판 만들기에 쓴다."""
     global _model
     if _model is None:
         from fastembed import TextEmbedding
@@ -30,8 +39,69 @@ def embedder():
     return _model
 
 
-def embed(texts):
-    v = np.array(list(embedder().embed(texts)), dtype=np.float32)
+SLIM_DIR = OUT.parent / "model"
+_slim = None
+
+
+def slim():
+    """경량판 모델(hive.slim_model로 만든 data/model/) — 메모리 약 0.2GB. 질문 임베딩에 쓴다."""
+    global _slim
+    if _slim is None:
+        import onnxruntime as ort
+        from tokenizers import Tokenizer
+        so = ort.SessionOptions()
+        so.intra_op_num_threads = 1
+        so.enable_cpu_mem_arena = False
+        sess = ort.InferenceSession(str(SLIM_DIR / "model.onnx"), so, providers=["CPUExecutionProvider"])
+        tok = Tokenizer.from_file(str(SLIM_DIR / "tokenizer.json"))
+        tok.enable_truncation(128)
+        tok.enable_padding()
+        _slim = (sess, tok, {i.name for i in sess.get_inputs()})
+    return _slim
+
+
+def _slim_embed(texts):
+    sess, tok, names = slim()
+    out = []
+    for i in range(0, len(texts), 32):
+        enc = tok.encode_batch(texts[i:i + 32])
+        ids = np.array([e.ids for e in enc], dtype=np.int64)
+        mask = np.array([e.attention_mask for e in enc], dtype=np.int64)
+        feed = {"input_ids": ids, "attention_mask": mask}
+        if "token_type_ids" in names:
+            feed["token_type_ids"] = np.zeros_like(ids)
+        h = sess.run(None, feed)[0].astype(np.float32)
+        out.append((h * mask[..., None]).sum(1) / mask.sum(1, keepdims=True))  # 평균 풀링 (fastembed와 같음)
+    return np.concatenate(out)
+
+
+def backend():
+    return "gemini" if os.environ.get("HIVE_EMBED") == "gemini" else "local"
+
+
+def vectors_file(b=None):
+    return OUT / ("vectors_gemini.npy" if (b or backend()) == "gemini" else "vectors.npy")
+
+
+def _gemini(texts, task):
+    from google import genai
+    from google.genai import types
+    client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"])
+    out = []
+    for i in range(0, len(texts), 100):  # 한 번에 100개까지
+        r = client.models.embed_content(model=GEMINI_MODEL, contents=texts[i:i + 100],
+                                        config=types.EmbedContentConfig(task_type=task, output_dimensionality=GEMINI_DIM))
+        out += [e.values for e in r.embeddings]
+    return out
+
+
+def embed(texts, b=None, query=True):
+    if (b or backend()) == "gemini":
+        v = np.array(_gemini(list(texts), "RETRIEVAL_QUERY" if query else "RETRIEVAL_DOCUMENT"), dtype=np.float32)
+    elif query and (SLIM_DIR / "model.onnx").exists():
+        v = _slim_embed(list(texts))
+    else:
+        v = np.array(list(embedder().embed(texts)), dtype=np.float32)
     return v / np.linalg.norm(v, axis=1, keepdims=True)
 
 
@@ -93,7 +163,10 @@ def main():
     chunks = [c for d in docs if d["type"] != "hub" for c in chunk_doc(d)]
     for i, c in enumerate(chunks):
         c["id"] = i
-    vecs = embed([f'{c["title"]} — {c["heading"]}\n{c["text"]}' for c in chunks])
+    texts = [f'{c["title"]} — {c["heading"]}\n{c["text"]}' for c in chunks]
+    vecs = embed(texts, "local", query=False)
+    if os.environ.get("GOOGLE_API_KEY"):
+        np.save(vectors_file("gemini"), embed(texts, "gemini", query=False))
     graph = build_graph(docs)
     (OUT / "chunks.json").write_text(json.dumps(chunks, ensure_ascii=False))
     np.save(OUT / "vectors.npy", vecs)

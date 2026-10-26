@@ -23,13 +23,13 @@ REL_KO = {"COMPATIBLE_WITH": "호환", "MANUFACTURED_BY": "제조사", "RELATED_
 
 def store():
     """색인 파일이 다시 만들어지면 자동으로 새로 읽는다."""
-    return _store((OUT / "vectors.npy").stat().st_mtime)
+    return _store(index.vectors_file().stat().st_mtime)
 
 
 @lru_cache(maxsize=1)
 def _store(_mtime):
     chunks = json.loads((OUT / "chunks.json").read_text())
-    vecs = np.load(OUT / "vectors.npy")
+    vecs = np.load(index.vectors_file())
     docs = {d["path"]: d for d in json.loads((OUT / "docs.json").read_text())["docs"]}
     g = json.loads((OUT / "graph.json").read_text())
     by_doc = {}

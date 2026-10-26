@@ -55,3 +55,9 @@ python -m eval.run_ragas report  # eval/report.md
 
 이 저장소에는 앱 코드와 **승인된 위키 내보내기**만 있다. 원문 사본(`raw/`), 사내 자료(`workspaces/`), API 키·토큰은 포함하지 않는다.
 위키 문서는 공개 자료를 한국어로 정리한 것이며, 각 문서에 원문 링크와 출처가 있다.
+
+## 임베딩 모델
+
+`data/model/`은 [sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2)(Apache-2.0)의 ONNX판(Qdrant 변환본)에서
+사전을 4.4만 토큰으로 줄인 경량판이다(`python -m hive.slim_model`). 무료 서버 메모리 512MB 안에서 질문 임베딩을 만들기 위해서다.
+문서 임베딩(`data/public/vectors.npy`)은 원본 모델로 만들었고, 경량판과의 코사인 유사도는 문서 조각 기준 0.997 이상이다.

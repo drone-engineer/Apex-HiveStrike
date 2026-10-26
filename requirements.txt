@@ -1,6 +1,7 @@
 anthropic==1.17.0
 fastapi==0.162.0
-fastembed==0.9.1
+onnxruntime==1.31.0
+tokenizers==0.23.3
 jinja2==3.1.6
 markdown==3.11.2
 neo4j==6.4.1

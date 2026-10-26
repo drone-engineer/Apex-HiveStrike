@@ -47,10 +47,10 @@ class State(TypedDict, total=False):
 
 
 def _text(content):
-    """LLM 응답 내용 → 문자열 (Gemini·Claude는 블록 목록으로 줄 수 있다)."""
+    """LLM 응답 내용 → 문자열 (Gemini·Claude는 블록 목록으로 줄 수 있다). 각주식 인용 [^1]은 [1]로 맞춘다."""
     if isinstance(content, list):
-        return "".join(b.get("text", "") if isinstance(b, dict) else str(b) for b in content)
-    return content or ""
+        content = "".join(b.get("text", "") if isinstance(b, dict) else str(b) for b in content)
+    return re.sub(r"\[\^(\d+)\]", r"[\1]", content or "")
 
 
 def _json(text):
