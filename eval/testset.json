@@ -1,0 +1,263 @@
+[
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "01_software/px4/px4-multicopter-pid-tuning-autotune"
+  ],
+  "question": "PX4에서 롤과 피치의 각속도를 제어하려면 어떤 파라미터를 수정해야 하나요?",
+  "reference": "롤 각속도 PID 게인은 `MC_ROLLRATE_P`, `MC_ROLLRATE_I`, `MC_ROLLRATE_D`, `MC_ROLLRATE_K`를 사용하며, 피치 각속도 PID 게인은 `MC_PITCHRATE_P`, `MC_PITCHRATE_I`, `MC_PITCHRATE_D`, `MC_PITCHRATE_K`를 사용합니다.",
+  "id": 1
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "02_hardware/datalink/nooploop-linktrack"
+  ],
+  "question": "Nooploop LinkTrack을 사용할 때 3D 위치 정확도는 어느 정도인가요?",
+  "reference": "3D 정확도는 typical 기준 30 cm로, 2D 정확도인 10 cm보다 크게 낮습니다.",
+  "id": 2
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "03_sensor/eo_ir/intel-realsense-d435i"
+  ],
+  "question": "RealSense D435i를 사용할 때 추적 손실로 인한 자세 점프 문제를 해결하려면 어떻게 해야 하나요?",
+  "reference": "안정화를 위해 IMU 캘리브레이션, 30 fps 제한, 그리고 지도 저장 및 로드가 필요합니다.",
+  "id": 3
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "04_ai_detection_tracking/datasets/uav-satellite-geolocalization-datasets"
+  ],
+  "question": "VPAIR 데이터셋을 사용할 때 300m 이상의 고도에서 발생하는 주요 기술적 어려움은 무엇인가요?",
+  "reference": "VPAIR의 주요 난점은 300m 이상의 조감 시점에서의 면내 회전(in-plane rotation)입니다.",
+  "id": 4
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "05_rcws_cuas/cuas_response/net-capture-interceptors"
+  ],
+  "question": "네트 포획 요격드론에서 표적을 탐지하고 추적할 때 어떤 기술들이 사용되나요?",
+  "reference": "LiDAR를 통해 DBSCAN 군집화와 MHE(Moving Horizon Estimation)로 이동 구간을 추정하며, YOLO 신경망을 이용해 비전으로 표적을 검증합니다.",
+  "id": 5
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "06_regulation_market/regulation_kr/kiast-safety-certification-procedure"
+  ],
+  "question": "무인동력비행장치 안전성인증을 신청할 때 방송통신기자재 적합성평가나 농업기계 검정도 같이 신청할 수 있나요?",
+  "reference": "무인동력비행장치 안전성인증 신청 시 '방송통신기재등의 적합성평가' 및 '농업기계 검정' 신청서를 기술원에 함께 제출할 수 있습니다. 이 경우 기술원이 국립전파연구원과 농업기계실용화재단 등 각 담당기관으로 서류를 송부합니다.",
+  "id": 6
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "07_swarm/swarm-drone-challenge-2026"
+  ],
+  "question": "저가형 COTS 드론을 활용해 실내에서 군집 실험을 진행한 사례가 있나요?",
+  "reference": "군집 ISAC 배치 최적화와 COTS 드론 편대(AirSwarm)를 통해 저가 기체 실내 군집 실험 사례가 있습니다.",
+  "id": 7
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "companies/tmotor"
+  ],
+  "question": "T-MOTOR 제품 중에서 IP45 등급을 지원하는 모터 모델명이 무엇인가요?",
+  "reference": "tmotor mn505 s kv320 모델이 Navigator 계열이며 IP45를 지원합니다.",
+  "id": 8
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "01_software/betaflight-cli"
+  ],
+  "question": "Betaflight CLI에서 설정한 슬라이더 값을 적용하고 싶을 때는 어떤 명령어를 사용해야 하나요?",
+  "reference": "`simplified_tuning apply` 명령어를 사용하여 간소화 튜닝(simplified tuning) 슬라이더 값을 적용할 수 있습니다.",
+  "id": 9
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "02_hardware/propulsion/tmotor-mn501-s-kv240"
+  ],
+  "question": "T-MOTOR MN501-S KV240 모터를 P15×5 프롭과 48.52V 조건에서 사용할 때, 추력 대비 무게비는 어느 정도로 계산되나요?",
+  "reference": "추력/무게비는 약 27.4(4660g ÷ 170g)로 계산됩니다.",
+  "id": 10
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "03_sensor/micoair-micovio"
+  ],
+  "question": "MicoVIO 센서를 사용할 때 전력 소모량과 인터페이스 규격은 어떻게 되나요?",
+  "reference": "소비 전력은 일반 1 W(5 V, 평균 200 mA)이며, 인터페이스는 MAVLink 2(3.3 V LVTTL UART)를 사용합니다.",
+  "id": 11
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "04_ai_detection_tracking/edge_ai/nvidia-jetson-orin-nano"
+  ],
+  "question": "Orin NX 16GB 모델의 AI 성능과 전력 모드 사양은 어떻게 되나요?",
+  "reference": "Orin NX 16GB의 AI 성능은 157 Sparse INT8 TOPS이며, 전력 모드는 10 / 15 / 25 / 40W입니다.",
+  "id": 12
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "06_regulation_market/regulation_kr/unmanned-aircraft-safety-certification-registration"
+  ],
+  "question": "어떤 기준을 넘는 무인동력비행장치가 안전성인증을 받아야 하나요?",
+  "reference": "무인동력비행장치는 최대이륙중량이 25kg을 초과하는 경우 안전성인증 대상에 해당합니다.",
+  "id": 13
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "07_swarm/collision_avoidance/swarm-collision-avoidance-overview"
+  ],
+  "question": "드론 군집의 충돌회피 기술을 분류할 때 어떤 요소들이 포함되나요?",
+  "reference": "Rezaee 등의 2024년 분류 체계에 따르면 장애물 탐지·회피, 충돌회피 알고리즘, 드론 군집, 경로 최적화가 포함됩니다.",
+  "id": 14
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "companies/upgrade-energy"
+  ],
+  "question": "Upgrade Energy Gold V1 6s2p 모델의 에너지 밀도가 어떻게 되나요?",
+  "reference": "GOLD V1 6S2P 22.2Ah 모델의 에너지 밀도는 335Wh/kg입니다.",
+  "id": 15
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "01_software/px4/px4-v1-18"
+  ],
+  "question": "PX4 v1.18 버전의 uXRCE-DDS에서 DDS 버전 선택 시 어떤 것들이 지원되나요?",
+  "reference": "DDS v3, ROS 2 Lyrical Luth 그리고 Rolling Ridley를 지원합니다.",
+  "id": 16
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "02_hardware/airframe/quad-q250"
+  ],
+  "question": "Q250-V3 Opti 모델은 GPS 신호가 잡히지 않는 실내 환경에서 어떻게 비행이 가능한가요?",
+  "reference": "Q250-V3 Opti는 하방 Optical-Flow와 LiDAR를 내장해 GPS가 없는 실내에서도 호버링·자율 주행을 할 수 있습니다.",
+  "id": 17
+ },
+ {
+  "kind": "단일 문서",
+  "docs": [
+   "04_ai_detection_tracking/edge_ai/modalai-voxl-2"
+  ],
+  "question": "VOXL 2를 사용할 때 어떤 미들웨어를 지원하며, 지상국 소프트웨어로는 무엇을 써야 하나요?",
+  "reference": "미들웨어는 ROS 2와 ROS 1을 지원하며, 지상국은 QGroundControl(GCS 허브)을 사용합니다.",
+  "id": 18
+ },
+ {
+  "kind": "관계",
+  "rel": "RELATED_TO",
+  "docs": [
+   "04_ai_detection_tracking/sensor_fusion/uwb-nlos-bias-mitigation",
+   "02_hardware/datalink/bitcraze-loco-positioning-deck"
+  ],
+  "question": "Crazyflie 나노 쿼드콥터에 적용된 Zhao 외의 바이어스 보정 기법을 사용했을 때, Loco Positioning deck의 TDOA 측위 오차는 평균적으로 얼마나 줄어듭니까?",
+  "reference": "Zhao 외의 학습 기반 바이어스 보정과 M-추정 기반 강건 필터를 결합한 기법은 Crazyflie 나노 쿼드콥터 온보드에서 측위 오차를 평균 42.08% 줄였습니다.",
+  "id": 19
+ },
+ {
+  "kind": "관계",
+  "rel": "MANUFACTURED_BY",
+  "docs": [
+   "02_hardware/propulsion/tmotor-mf1806",
+   "companies/tmotor"
+  ],
+  "question": "T-MOTOR MF1806 폴리머 접이식 프로펠러를 사용하여 헥사콥터를 구성할 때, 권장되는 로터당 호버 추력 범위와 이 제품과 같은 Folding 시리즈에 속하는 다른 프로펠러의 종류는 무엇인가요?",
+  "reference": "T-MOTOR MF1806 폴리머 접이식 프로펠러의 추천 로터당 호버 추력은 1~1.8kg 대역이며, 동일한 Folding 시리즈에는 tmotor fa15 2x5와 tmotor fa24 2x7 9가 있습니다.",
+  "id": 20
+ },
+ {
+  "kind": "관계",
+  "rel": "RELATED_TO",
+  "docs": [
+   "01_software/ardupilot/ardupilot-nooploop-uwb-beacon",
+   "02_hardware/datalink/nooploop-linktrack"
+  ],
+  "question": "Nooploop LinkTrack 노드를 활용하여 ArduPilot Nooploop UWB 비GPS 비컨을 설정할 때, 앵커로 사용할 노드의 수량과 이 시스템의 제조사가 제공하는 일반적인 3D 정확도는 얼마입니까?",
+  "reference": "앵커로 사용할 노드는 총 4개가 필요하며, 제조사의 3D typical 정확도는 30 cm입니다.",
+  "id": 21
+ },
+ {
+  "kind": "관계",
+  "rel": "COMPATIBLE_WITH",
+  "docs": [
+   "02_hardware/airframe/modalai-starling-2",
+   "04_ai_detection_tracking/edge_ai/modalai-voxl-2"
+  ],
+  "question": "ModalAI Starling 2 드론에 사용되는 VOXL 2와 Jetson Orin Nano 8GB (Super)의 CPU 코어 수 및 최대 클럭 속도를 비교하면 어떻게 되나요?",
+  "reference": "VOXL 2의 CPU는 8코어 최대 3.091GHz이며, Jetson Orin Nano 8GB (Super)의 CPU는 6코어 Cortex-A78AE입니다.",
+  "id": 22
+ },
+ {
+  "kind": "관계",
+  "rel": "RELATED_TO",
+  "docs": [
+   "04_ai_detection_tracking/datasets/visdrone",
+   "04_ai_detection_tracking/detection/yolo26"
+  ],
+  "question": "VisDrone 학습 예제에서 쓰는 YOLO 모델 파일 이름과, YOLO26n-obb 모델의 파라미터 수는 각각 얼마인가요?",
+  "reference": "VisDrone 학습 예제는 yolo26n.pt 모델을 사용하며, YOLO26n-obb 모델의 파라미터는 2.4M입니다.",
+  "id": 23
+ },
+ {
+  "kind": "관계",
+  "rel": "RELATED_TO",
+  "docs": [
+   "04_ai_detection_tracking/datasets/uav-satellite-geolocalization-datasets",
+   "04_ai_detection_tracking/datasets/alto-uav-vpr-dataset"
+  ],
+  "question": "ALTO 데이터셋의 촬영 지역과 비행 궤적의 길이는 어떻게 되나요?",
+  "reference": "ALTO 데이터셋은 미국 오하이오·펜실베이니아를 촬영하며, 궤적 약 150 km·260 km 2개로 구성되어 있습니다.",
+  "id": 24
+ },
+ {
+  "kind": "관계",
+  "rel": "COMPATIBLE_WITH",
+  "docs": [
+   "02_hardware/datalink/nooploop-linktrack",
+   "07_swarm/algorithms/visual-inertial-uwb-swarm-estimation"
+  ],
+  "question": "Omni-swarm 시스템을 구성하기 위해 필요한 센서 중 UWB 모듈인 LinkTrack이 지원하는 기능과, Omni-swarm 구성을 위해 필요한 전체 센서 구성은 무엇인가요?",
+  "reference": "LinkTrack은 앵커 기반 측위(LP), 앵커 없는 분산 레인징(DR), 고속 데이터 전송(DT) 모드를 제공하며, Omni-swarm의 센서 구성에는 스테레오 광각(어안) 카메라 + UWB + 컴패니언 컴퓨터가 필요합니다.",
+  "id": 25
+ },
+ {
+  "kind": "관계",
+  "rel": "RELATED_TO",
+  "docs": [
+   "01_software/ros2/rmw-zenoh-px4",
+   "01_software/ros2/px4-ros2-integration"
+  ],
+  "question": "PX4 v1.17 기준 PX4 Zenoh의 기본 주소와 ROS 2 Jazzy(Ubuntu 24.04) 환경에서 사용되는 메시지 정의 라이브러리의 이름은 무엇인가요?",
+  "reference": "PX4 v1.17 기준 PX4 Zenoh의 기본 주소는 `10.41.10.1:7447`이며, ROS 2 Jazzy 환경에서 사용하는 메시지 정의 라이브러리는 `px4_msgs`입니다.",
+  "id": 26
+ },
+ {
+  "kind": "관계",
+  "rel": "COMPATIBLE_WITH",
+  "docs": [
+   "03_sensor/eo_ir/arducam-ov9281-b0223",
+   "04_ai_detection_tracking/edge_ai/nvidia-jetson-orin-nano"
+  ],
+  "question": "NVIDIA Jetson Orin Nano에 Arducam OV9281 카메라 모듈을 사용할 때, OS 업데이트 시 주의해야 할 드라이버 관련 사항과 해당 보드의 최대 CSI 카메라 연결 가능 대수는 어떻게 됩니까?",
+  "reference": "JetPack(OS)을 바꾸면 드라이버를 다시 맞춰 설치해야 할 수 있으며, Jetson Orin Nano의 CSI 카메라는 최대 4대(가상 채널 8대)까지 연결 가능합니다.",
+  "id": 27
+ }
+]

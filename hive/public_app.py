@@ -55,7 +55,9 @@ def page(request, name, active, **ctx):
 
 def answer_html(text):
     # 모델 출력은 HTML을 이스케이프한 뒤 마크다운으로만 꾸민다
-    return markdown.markdown(html.escape(text, quote=False), extensions=["tables", "sane_lists"])
+    text = re.sub(r"(?<=\S)\n(?=[ \t]*(?:[*-]|\d+\.)[ \t])", "\n\n", text)  # 목록 앞 빈 줄이 없으면 마크다운이 목록으로 못 읽는다
+    out = markdown.markdown(html.escape(text, quote=False), extensions=["tables", "sane_lists"])
+    return re.sub(r"\[(\d+)\]", r'<a class="ref" href="#src-\1">[\1]</a>', out)  # [n] → 근거 목록으로
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -76,7 +78,7 @@ def ask_form(request: Request, q: str = Form(...)):
         return page(request, "answer.html", "/", title="지식기반 답변", q=q, result=None, hits=search.search(d["docs"], q, 10),
                     snippet=search.snippet, ask_on=False)
     why = answer.allow(request.headers.get("cf-connecting-ip") or request.client.host)
-    result = {"answer": "", "sources": [], "error": why} if why else answer.ask(q, d["docs"])
+    result = {"answer": "", "sources": [], "trace": [], "error": why} if why else answer.ask(q)
     return page(request, "answer.html", "/", title="지식기반 답변", q=q, result=result, body=answer_html(result["answer"]),
                 hits=[], snippet=search.snippet, ask_on=True)
 
@@ -91,9 +93,10 @@ async def ask_api(request: Request):
     why = answer.allow(request.headers.get("cf-connecting-ip") or request.client.host)
     if why:
         raise HTTPException(429, why)
-    r = answer.ask(q, data()["docs"])
-    return JSONResponse({"question": q, "answer": r["answer"], "error": r["error"],
-                         "sources": [{"title": s["title"], "url": f"/doc/{s['path']}"} for s in r["sources"]]})
+    r = answer.ask(q)
+    return JSONResponse({"question": q, "answer": r["answer"], "error": r["error"], "model": r["model"], "trace": r["trace"],
+                         "sources": [{"n": i, "title": s["title"], "heading": s["heading"], "url": f"/doc/{s['path']}", "via": s["via"]}
+                                     for i, s in enumerate(r["sources"], 1)]})
 
 
 MODE_LABEL = {"graph": "GraphRAG", "hybrid": "키워드+벡터", "vector": "벡터", "keyword": "키워드"}
