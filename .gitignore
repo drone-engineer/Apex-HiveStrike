@@ -6,3 +6,4 @@ data/*
 !data/model/
 *.log
 Neo4j-*.txt
+docs/activity-report-*.md
