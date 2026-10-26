@@ -1,7 +1,7 @@
 """LLM 고르기 — 자동 순서: GOOGLE_API_KEY → Gemini, ANTHROPIC_API_KEY → Claude, 없으면 이 맥의 Ollama 로컬 모델.
 
   HIVE_LLM=gemini|claude|ollama|none  (비우면 자동)
-  HIVE_GEMINI_MODEL Gemini 모델 (기본 gemini-2.5-flash)
+  HIVE_GEMINI_MODEL Gemini 모델 (기본 gemini-3.5-flash)
   HIVE_MODEL       Claude 모델 (기본 claude-opus-5-5)
   HIVE_OLLAMA_MODEL Ollama 모델 (기본 gemma4:26b — 이 맥에서 초당 약 57토큰)
 """
@@ -35,7 +35,7 @@ def chat(json_mode=False, max_tokens=4000):
     b = backend()
     if b == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
-        return ChatGoogleGenerativeAI(model=os.environ.get("HIVE_GEMINI_MODEL", "gemini-2.5-flash"), temperature=0,
+        return ChatGoogleGenerativeAI(model=os.environ.get("HIVE_GEMINI_MODEL", "gemini-3.5-flash"), temperature=0,
                                       max_output_tokens=max_tokens * 4,  # 생각(thinking) 토큰 몫까지
                                       response_mime_type="application/json" if json_mode else None)
     if b == "claude":
@@ -50,6 +50,6 @@ def chat(json_mode=False, max_tokens=4000):
 
 def label():
     b = backend()
-    return {"gemini": os.environ.get("HIVE_GEMINI_MODEL", "gemini-2.5-flash"),
+    return {"gemini": os.environ.get("HIVE_GEMINI_MODEL", "gemini-3.5-flash"),
             "claude": os.environ.get("HIVE_MODEL", "claude-opus-5-5"),
             "ollama": "Ollama " + os.environ.get("HIVE_OLLAMA_MODEL", "gemma4:26b"), "none": "없음"}[b]

@@ -19,7 +19,7 @@ from . import llm, retrieve
 
 MAX_ROUNDS = 2
 CITE = re.compile(r"\[\d+(?:\s*,\s*\d+)*\]")
-UNIT_NUM = re.compile(r"\d+(?:[.,]\d+)?\s*(?:kg|g|mAh|Ah|W|A|V|S|mm|cm|m|km|Hz|kHz|MHz|GHz|KV|%|분|초|시간|원|달러|USD|\$)(?![A-Za-z가-힣])")
+UNIT_NUM = re.compile(r"\d+(?:[.,]\d+)?\s*(?:kg|g|mAh|Ah|W|A|V|S|mm|cm|m|km|Hz|kHz|MHz|GHz|KV|%|분|초|시간|원|달러|USD|\$)(?![\dA-Za-z])")  # 뒤에 한글 조사는 허용, KV380 같은 이름은 제외
 TYPES = {"추천": "부품·소프트웨어를 골라 달라는 질문", "비교": "둘 이상을 견주는 질문", "사실": "사양·절차·정의를 묻는 질문",
          "범위밖": "드론 엔지니어링과 무관한 질문"}
 
@@ -46,7 +46,15 @@ class State(TypedDict, total=False):
     trace: list
 
 
+def _text(content):
+    """LLM 응답 내용 → 문자열 (Gemini·Claude는 블록 목록으로 줄 수 있다)."""
+    if isinstance(content, list):
+        return "".join(b.get("text", "") if isinstance(b, dict) else str(b) for b in content)
+    return content or ""
+
+
 def _json(text):
+    text = _text(text)
     m = re.search(r"\{.*\}", text, re.S)
     try:
         return json.loads(m.group(0)) if m else {}
@@ -64,6 +72,8 @@ def classify(state):
            f'\nJSON으로만 답하세요: {{"type": "추천|비교|사실|범위밖"}}\n\n질문: {state["question"]}')
     out = _json(llm.chat(json_mode=True, max_tokens=50).invoke([HumanMessage(msg)]).content)
     qtype = out.get("type") if out.get("type") in TYPES else "사실"
+    if qtype == "사실" and re.search(r"추천|골라|뭐가 좋|어떤 걸 써", state["question"]):
+        qtype = "추천"  # 분류 모델이 놓치는 흔한 표현
     return {"qtype": qtype, "query": state["question"], "rounds": 0, "contexts": [],
             "trace": _log(state, "질문 분류", result=qtype, sec=round(time.time() - t, 1))}
 
@@ -99,9 +109,7 @@ def generate(state):
         extra = "\n\n이전 답에서 자료로 확인되지 않은 주장(다시 쓰지 말 것):\n- " + "\n- ".join(state["unsupported"])
     msgs = [SystemMessage(GEN_SYSTEM + "\n- " + TYPE_GUIDE.get(state["qtype"], "")),
             HumanMessage(f'{_ctx_text(state["contexts"])}\n\n질문: {state["question"]}{extra}')]
-    answer = llm.chat(max_tokens=1500).invoke(msgs).content
-    if isinstance(answer, list):  # Claude는 블록 목록으로 줄 수 있다
-        answer = "".join(b.get("text", "") for b in answer if isinstance(b, dict))
+    answer = _text(llm.chat(max_tokens=1500).invoke(msgs).content)
     return {"answer": answer.strip(), "rounds": state.get("rounds", 0) + 1,
             "trace": _log(state, "답변 작성", round=state.get("rounds", 0) + 1, sec=round(time.time() - t, 1))}
 
@@ -117,7 +125,8 @@ def check(state):
         issues.append(f"없는 자료 번호 인용: {bad_refs}")
     for s in re.split(r"\n|(?<=[.!?])\s+(?!\[)", ans):
         # 단위가 붙은 수치(무게·전류·전압·크기·가격 등)를 말하면서 인용이 없는 문장
-        if UNIT_NUM.search(s) and not CITE.search(s) and not s.lstrip().startswith(("#", "|")):
+        if (UNIT_NUM.search(s) and not CITE.search(s) and not s.lstrip().startswith(("#", "|"))
+                and "근거를 찾지 못했" not in s and "자료 없음" not in s):
             issues.append(f"인용 없는 수치 문장: {s.strip()[:80]}")
     msg = (f"{_ctx_text(state['contexts'])}\n\n<답변>\n{ans}\n</답변>\n\n"
            "답변의 주장 중 위 자료로 뒷받침되지 않는 것(자료에 없는 수치·제품·사실)을 모두 찾으세요. "
@@ -152,9 +161,7 @@ def finalize(state):
             HumanMessage(f'{_ctx_text(state["contexts"])}\n\n<초안>\n{state["answer"]}\n</초안>\n\n'
                          f'아래 주장은 자료로 확인되지 않았습니다. 초안에서 이 주장들을 지우고, 해당 부분은 '
                          f'"등록된 자료에서 근거를 찾지 못했습니다"로 바꿔 최종 답을 쓰세요.\n- ' + "\n- ".join(state["unsupported"]))]
-    answer = llm.chat(max_tokens=1500).invoke(msgs).content
-    if isinstance(answer, list):
-        answer = "".join(b.get("text", "") for b in answer if isinstance(b, dict))
+    answer = _text(llm.chat(max_tokens=1500).invoke(msgs).content)
     return {"answer": answer.strip(), "trace": _log(state, "근거 없는 주장 제거", removed=len(state["unsupported"]),
                                                      sec=round(time.time() - t, 1))}
 

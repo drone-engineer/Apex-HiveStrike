@@ -118,7 +118,7 @@ def _mean(xs):
 def report():
     lines, ts = [], testset()
     kinds = sorted({t["kind"] for t in ts})
-    head = ["방식", "문서 적중률"] + [f"적중률({k})" for k in kinds] + METRICS + ["평균 시간(초)"]
+    head = ["방식", "문서 적중률"] + [f"적중률({k})" for k in kinds] + ["관계 질문 두 문서 모두"] + METRICS + ["평균 시간(초)"]
     lines += ["| " + " | ".join(head) + " |", "|" + "---|" * len(head)]
     meta = {}
     for cfg in CONFIGS:
@@ -132,6 +132,9 @@ def report():
         for k in kinds:
             sub = [r for r in rows if r["kind"] == k]
             cells.append(f"{sum(map(hit, sub)) / len(sub):.0%}" if sub else "-")
+        rel = [r for r in rows if r["kind"] == "관계"]
+        both = sum(all(g in r["ctx_docs"] for g in r["gold_docs"]) for r in rel)
+        cells.append(f"{both}/{len(rel)}" if rel else "-")
         sc = RES / f"{cfg}.scores.json"
         per = json.loads(sc.read_text())["per_question"] if sc.exists() else []
         for m in METRICS:

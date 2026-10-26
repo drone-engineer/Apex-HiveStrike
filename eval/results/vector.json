@@ -1,0 +1,767 @@
+{
+ "llm": "Ollama gemma4:26b",
+ "made_at": "2026-10-26T11:10",
+ "rows": [
+  {
+   "id": 1,
+   "kind": "단일 문서",
+   "question": "PX4에서 롤과 피치의 각속도를 제어하려면 어떤 파라미터를 수정해야 하나요?",
+   "reference": "롤 각속도 PID 게인은 `MC_ROLLRATE_P`, `MC_ROLLRATE_I`, `MC_ROLLRATE_D`, `MC_ROLLRATE_K`를 사용하며, 피치 각속도 PID 게인은 `MC_PITCHRATE_P`, `MC_PITCHRATE_I`, `MC_PITCHRATE_D`, `MC_PITCHRATE_K`를 사용합니다.",
+   "answer": "QGroundControl의 PID Tuning 화면에서 P, I, D 값을 슬라이더로 조정하여 수정할 수 있습니다 [1].\n\n수동 튜닝 시에는 다음과 같은 절차를 따릅니다:\n- 튜닝할 축을 선택하며, 롤(Roll) 축부터 시작하는 것이 권장됩니다 [1].\n- 피치(Pitch) 축의 경우, 처음에는 롤 값을 그대로 사용하는 경우가 많습니다 [1].\n- 조종 스틱을 전 범위로 빠르게 움직이며 응답 그래프를 관찰하고, 화면 슬라이더를 통해 P·I·D 게인을 조정합니다 [1].",
+   "contexts": [
+    "PX4 멀티콥터 PID 튜닝 (수동·오토튠) — 절차\n### 수동 튜닝 — 각속도 제어기 단계\n1. Position 모드로 호버링[^1]\n2. QGroundControl의 PID Tuning 화면 진입[^1]\n3. 추력 곡선(thrust curve) 값 설정 — PWM 제어 ESC와 RPM 기반 ESC에 서로 다른 값 사용[^1] (값은 아래 \"원문 재확인 필요\")\n4. 튜닝할 축 선택 (롤부터 권장)[^1]\n5. 필요하면 자동 비행 모드 전환 활성화[^1]\n6. Acro, Stabilized 또는 Altitude 모드로 전환[^1]\n7. 조종 스틱을 전 범위로 빠르게 움직이며 응답 그래프 관찰[^1]\n8. 화면 슬라이더로 P·I·D 조정[^1]\n\n피치·요 축도 반복하며, 피치는 처음에 롤 값을 그대로 쓰는 경우가 많다.[^1] 시험은 호버링 중 빠른 스틱 입력을 주고, 기체가 진동·오버슈트 없이 즉시 반응해 \"잠긴 듯한(locked-in)\" 느낌이 나면 된다.[^2]",
+    "PX4 멀티콥터 PID 튜닝 (수동·오토튠) — 요약\nPX4 멀티콥터의 PID 제어기는 **각속도(rate) → 자세(attitude) → 속도·위치(velocity/position)** 의 계층 구조이며, 튜닝은 가장 아래 단계인 각속도 제어기부터 위로 진행한다.[^1] 방법은 QGroundControl의 PID 튜닝 화면에서 게인을 직접 조정하는 **수동 튜닝**[^1][^2]과, 비행 중 각속도·자세 제어기를 자동으로 튜닝하는 **오토튠(Auto-tuning)**[^3]이 있다. PX4 문서는 오토튠에 대해 \"튜닝은 한 번만 하면 되며, 제조사가 이미 튜닝한 기체가 아니라면 권장된다\"(\"Tuning only needs to be done once, and is recommended unless you're using a vehicle that has already been tuned by the manufacturer.\")고 설명한다.[^3]",
+    "PX4 v1.18 (개발 중 — 베타·RC 단계) — 추천 상황 / 비추천 상황\n- 추천: 차기 릴리스를 미리 시험하려는 개발·시뮬레이션 환경, ROS 2 Lyrical·Rolling과 uXRCE-DDS 연동을 시험하는 팀, X-Plane·RotorPy SITL이나 센서 고장 주입 시뮬레이션이 필요한 경우.[^1]\n- 비추천: 운용 기체(안정판 아님)[^1] — PX4 v1.17 사용. 폐기 MAVLink 요청 명령·development 방언에 의존하는 도구를 쓰는 경우.[^1]",
+    "PX4 v1.18 (개발 중 — 베타·RC 단계) — 요약\nPX4 v1.18은 v1.17 다음 릴리스로, 2026-10-13 현재 베타·RC 단계다.[^1] 수동 조종 개입 방식(스틱 이동 **속도** 기준), 규격에 맞춘 MAVLink 서명, 런타임 EKF2 융합 소스 전환, 수신기별 GPS 오프셋 파라미터 등 **업그레이드 전 확인할 변경**이 있다.[^1] ROS 2 쪽은 uXRCE-DDS가 DDS v3·ROS 2 Lyrical Luth·Rolling Ridley를 지원하고, Zenoh는 발행 옵션 설정·ARKV6X 빌드 변형·Humble 이하 지원이 추가됐다.[^1] 시뮬레이션에는 X-Plane·RotorPy SITL과 각종 고장 주입이 들어왔다.[^1]",
+    "PX4–ROS 2 연동 — 오픈소스 스택 예시\n> [!info] 아래 프로젝트는 제조사 공식 자료가 아닌 **개인 오픈소스 저장소**다. 버전·통계는 확인일(2026-10-11, PX4-ROS2-SLAM-Control은 2026-10-13) 기준이며 변동된다.[^4][^5][^7]\n\n- **PX4-ROS2-SLAM-Control (eOvic)** — PX4 + ROS 2 Jazzy + Gazebo Harmonic 시뮬레이션에서 2D 라이다·RGBD SLAM, DQN 호버링 강화학습, yolo_ros 사용 명령, PX4 `VehicleOdometry`→ROS 2 오도메트리 변환기(`odom_converter.py`)를 묶은 개인 프로젝트(MIT, Stars 50, 2025-09-14 이후 push 없음).[^7] README가 `px4_ros_com`을 \"microRTPS bridge\"를 포함한다고 쓰는 것은 **옛 표현**이다 — 현재 PX4 ROS 2 연동은 uXRCE-DDS(또는 실험적 Zenoh)를 쓴다.[^1][^7]",
+    "PX4–ROS 2 연동 — 동작 원리\n`TrajectorySetpoint` 같은 메시지의 벡터와 자세 쿼터니언은 PX4로 보내기 전에 명시적으로 변환해야 한다. ENU → NED 변환은 \"first a pi/2 rotation around the Z-axis, then a pi rotation around the X-axis\" — 먼저 Z축으로 π/2 회전, 그다음 X축으로 π 회전이다.[^1]\n\n**시간 동기화**: Gazebo 시뮬레이션에서는 uXRCE-DDS가 ROS 2와 PX4 시간을 자동 동기화한다. 또는 ROS 2 노드가 `use_sim_time`을 true로 하고 uXRCE-DDS 시간 동기화를 끈 뒤 Gazebo `/clock` 토픽을 시간원으로 쓸 수 있다.[^1]"
+   ],
+   "ctx_docs": [
+    "01_software/px4/px4-multicopter-pid-tuning-autotune",
+    "01_software/px4/px4-multicopter-pid-tuning-autotune",
+    "01_software/px4/px4-v1-18",
+    "01_software/px4/px4-v1-18",
+    "01_software/ros2/px4-ros2-integration",
+    "01_software/ros2/px4-ros2-integration"
+   ],
+   "gold_docs": [
+    "01_software/px4/px4-multicopter-pid-tuning-autotune"
+   ],
+   "rounds": 1,
+   "sec": 6.0
+  },
+  {
+   "id": 2,
+   "kind": "단일 문서",
+   "question": "Nooploop LinkTrack을 사용할 때 3D 위치 정확도는 어느 정도인가요?",
+   "reference": "3D 정확도는 typical 기준 30 cm로, 2D 정확도인 10 cm보다 크게 낮습니다.",
+   "answer": "Nooploop LinkTrack의 3D 측위 정확도는 typical 기준 30 cm입니다 [1]. 이 수치는 제조사 표기 사항이며, 해당 설정과의 연관 조건에 대해서는 등록된 자료에서 근거를 찾지 못했습니다 [3].",
+   "contexts": [
+    "Nooploop LinkTrack — 주요 사양\n| 항목 | 값 | 출처 |\n|---|---|---|\n| 1D/2D 측위 정확도 | 10 cm (typical) | [^1] |\n| 3D 측위 정확도 | 30 cm (typical) | [^1] |\n| 최대 갱신율 | 200 Hz | [^1] |\n| 측위 지연 | 5 ms | [^1] |\n| 태그 수 | 40 (기본, 200까지 확장) | [^1] |\n| 앵커 수 | 최대 120 | [^1] |\n| 콘솔 | 1 | [^1] |\n| 데이터 전송 대역폭 | 최대 3 Mbps | [^1] |\n| DT 모드 지연 | 0.5 ms 미만 | [^1] |\n| 통신 거리 P-A 시리즈 | 최대 120 m (권장 40 m) | [^1] |\n| 통신 거리 P-B 시리즈 | 최대 2000 m (일부 모델 권장 1000 m) | [^1] |\n| 통신 거리 P-C 시리즈 | 최대 500 m (권장 300 m) | [^1] |\n| 동작 모드 | LP(태그·앵커·콘솔) / DR(역할 통일 분산 레인징) / DT(마스터·슬레이브 데이터 전송) | [^1] |\n| 내장 IMU | 3축 자이로 + 3축 가속도계 | [^1] |\n| 기타 기능 | 앵커 좌표 원키 보정, Fake GPS(NMEA-0183 출력), ROS 패키지, Windows·Ubuntu·macOS 소프트웨어 | [^1] |\n| 주파수 | P-A 4·4.5·6.5 GHz / P-B 4·4.5 GHz / P-C 6.5 GHz | [^4] |\n| 대역폭 | 499.2 MHz (전 시리즈) | [^4] |\n| DR 모드 노드 수 | 10 Hz 출력에서 최대 50개 (레인징 정확도 typical 10 cm, 200 Hz에서 지연 5 ms) | [^4] |\n| 무게·전력·크기 | 자료 없음 | — |\n| 가격 | 자료 없음 (2026-10-14 확인) | — |",
+    "Nooploop LinkTrack — 추천 상황 / 비추천 상황\n- 추천: ArduPilot 기체의 실내 비GPS 위치 유지·자동 비행 시험[^2], Omni-swarm 기반 군집 상대 상태추정 연구[^3], 앵커 없는 기체 간 거리 측정(DR 모드)[^1].\n- 비추천: 3D 정확도가 10 cm급이어야 하는 작업(제조사 3D typical 30 cm[^1]). 무게·전력 제약이 극심한 나노드론은 무게 자료가 없어 판단 불가(자료 없음).",
+    "ArduPilot Nooploop UWB 비GPS 비컨 설정 — 성능·한계\n| 지표 | 값 | 조건 | 출처 |\n|---|---|---|---|\n| 지상 시험 위치 안정 기준 | 1 m 이내 | 약 1분 후 안정 | [^1] |\n| LinkTrack 2D/3D 정확도 | 10 cm / 30 cm (typical) | 제조사 표기, 이 설정과의 연관 조건은 자료 없음 | [^3] |\n| 비행 중 위치 오차 실측 | 자료 없음 | — | — |\n\n- 앵커 4개 고정 설치가 필요한 **인프라 방식**이다.[^1] 앵커 없는 군집 상대측위는 UWB 기반 군집 상대 위치추정 참고.\n- 다수 기체에 동시에 적용하는 절차는 이 문서에 없다(자료 없음). LinkTrack 제조사는 태그 최대 40(확장 시 200)을 표기한다.[^3]",
+    "Bitcraze Loco Positioning deck — 추천 상황 / 비추천 상황\n- 추천: Crazyflie 기반 실내 나노드론 군집 실험(TDoA 2/3로 다수 기체 동시 측위)[^2], UWB 측위 알고리즘 연구.\n- 비추천: 실외·10 m 넘는 거리[^1][^2], Crazyflie가 아닌 기체(폼팩터 전용[^1]), 앵커 설치가 불가능한 현장(앵커 필요[^1] — 앵커리스 방식은 UWB 기반 군집 상대 위치추정 참고).",
+    "UWB 기반 군집 상대 위치추정 — 동작 원리\n### 5. 다중 안테나 — 통신 최소화 (Fishberg 외, MURP)\n- 기체마다 **UWB 태그를 여러 개** 달아, 오도메트리 같은 데이터를 계속 송신하지 않고 **자기 기체에서 측정한 거리**, 사전 상태 제약, 그 제약이 깨졌을 때의 이벤트 기반 감지만으로 3D 상대 자세를 추정한다.[^3]\n- 기존 방식처럼 오도메트리를 계속 송신하면 팀 규모가 커지거나 통신망이 약해질 때 확장성 문제가 생길 수 있다는 점을 동기로 든다.[^3]\n- 학습한 평균 레인징 바이어스 보정으로 위치 오차를 추가로 19% 줄였고, 실험 평균 절대 오차는 **위치 0.24 m, 헤딩 9.5°**였다.[^3] 데이터셋을 공개했다.[^3]",
+    "UWB 기반 군집 상대 위치추정 — 동작 원리\n### 4. 관측성·기하 — CRLB·GDOP (Gao 외, 2025)\n- 기체 탑재 UWB만 쓰는 무인프라 3D 상대측위 프레임워크로, 유클리드 거리 행렬(EDM)과 최대우도추정(MLE) 기반 측위 알고리즘 2종을 제시한다.[^2]\n- **근거리(near field)** 조건의 크라메르-라오 하한(CRLB)과 기하학적 정밀도 저하(GDOP)를 유도하고, 동물 군집 행동에서 착안한 **센서(안테나) 배치 전략**을 제안했다.[^2]\n- 시뮬레이션과 현장 시험으로 검증했다고 하며, 정확도 수치는 초록 요지에 없다(제목은 \"sub-meter accuracy\").[^2]"
+   ],
+   "ctx_docs": [
+    "02_hardware/datalink/nooploop-linktrack",
+    "02_hardware/datalink/nooploop-linktrack",
+    "01_software/ardupilot/ardupilot-nooploop-uwb-beacon",
+    "02_hardware/datalink/bitcraze-loco-positioning-deck",
+    "07_swarm/algorithms/uwb-relative-localization",
+    "07_swarm/algorithms/uwb-relative-localization"
+   ],
+   "gold_docs": [
+    "02_hardware/datalink/nooploop-linktrack"
+   ],
+   "rounds": 1,
+   "sec": 4.4
+  },
+  {
+   "id": 3,
+   "kind": "단일 문서",
+   "question": "RealSense D435i를 사용할 때 추적 손실로 인한 자세 점프 문제를 해결하려면 어떻게 해야 하나요?",
+   "reference": "안정화를 위해 IMU 캘리브레이션, 30 fps 제한, 그리고 지도 저장 및 로드가 필요합니다.",
+   "answer": "추적 손실 시 발생하는 자세 점프 문제를 해결하기 위해서는 추가적인 오도메트리 소스와 EKF(확장 칼만 필터)를 병행하여 사용하는 것이 권고됩니다 [2].\n\n또한, Jetson Orin Nano에서 Isaac ROS Visual SLAM을 사용하는 경우, 포럼에서 제안된 IMU 캘리브레이션, 30 fps 설정, 그리고 지도 저장/로드 조치를 함께 적용하는 것이 추천됩니다 [2].",
+   "contexts": [
+    "RealSense D435i — 요약\nD435i는 글로벌 셔터 스테레오 깊이 센서, 롤링 셔터 RGB 센서, 6DoF IMU를 갖춘 USB-C 깊이 카메라다. [^1] Jetson Orin Nano Devkit에서 Isaac ROS Visual SLAM과 함께 쓴 공개 사용자 사례가 있어, Orin Nano 기반 VSLAM/VIO를 빠르게 시도해 볼 후보다. 다만 그 사례에서 추적 손실 시 자세 점프가 보고되었다. [^2] 선정 기준 전반은 VIO용 글로벌 셔터 카메라 선정 참고.\n\n> [!info] 수집 한계\n> 구 공식 도메인(intelrealsense.com)은 DNS 조회 실패, Intel D400 시리즈 데이터시트 PDF는 HTTP 403으로 수집하지 못했다. 이 페이지에는 IMU 모델명이 없고, 서드파티 판매처 자료에만 모델명이 표기되어 있다(미수집). 따라서 IMU 모델·무게·전력·가격·Jetson 공식 지원·지연은 **자료 없음**이다. [^1]",
+    "RealSense D435i — 추천 상황 / 비추천 상황\n- 추천: Jetson Orin Nano에서 Isaac ROS Visual SLAM을 공개 사례를 따라 빠르게 시도하려는 경우 — 단, 포럼의 IMU 캘리브레이션·30 fps·지도 저장/로드 조치를 함께 적용. [^2]\n- 추천: 0.3~3 m 범위의 근거리 깊이 인식. [^1]\n- 비추천: 추적 손실 후 자세 점프가 치명적인 비행 제어용 단독 위치원 — 사례 작성자도 추가 오도메트리 소스와 EKF 병행을 권고. [^2]\n- 비추천: 컬러 영상까지 글로벌 셔터가 필요한 경우(RGB 롤링 셔터). [^1]\n- 비추천: 공식 JetPack 지원 근거가 필요한 경우 — 자료 없음.",
+    "요격드론 유도·추격 기술 — 동작 원리\n**Perception-to-Pursuit (P2P)** (Oruganti, 2026, 프리프린트)[^2]\n- 문제의식: 기존 추적 기법은 예측 정확도만 최적화하고 추격 가능성을 무시해, 예측 궤적이 **99.9%의 경우 물리적으로 요격 불가능**하다고 지적한다.\n- 방법: 드론 운동을 속도·가속도·크기·매끄러움을 담은 **8차원 토큰**으로 표현하고, **12프레임 인과(causal) 트랜스포머**로 미래 거동을 추론한다.\n- 새 지표 **ISR(Intercept Success Rate)**: 현실적인 요격기 제약 아래에서 추격 가능성을 측정한다.",
+    "PX4 멀티콥터 PID 튜닝 (수동·오토튠) — 절차\n### 수동 튜닝 — 자세 제어기\n대체로 기본값에서 조정이 거의 필요 없다. Stabilized 모드에서 P 게인을 진동이 나타날 때까지 서서히 올린 뒤 조금 낮춘다.[^2]\n\n### 오토튠 — 사전 안정성 시험\n오토튠 전에 기체가 안정적인지 다음 순서로 확인한다.[^3]\n1. Altitude 또는 Stabilized 모드로 낮은 고도에서 호버링\n2. 롤 방향으로 좌 → 우 → 중앙, 몇 도 기울이는 조작\n3. 기체가 짧은 진동 내에 안정되는지 확인\n4. 기울기를 점차 키워 반복\n5. 피치 축도 반복\n\n진동 수렴 기준을 만족해야 오토튠으로 진행한다.[^3] (구체 고도·각도·진동 횟수는 아래 \"원문 재확인 필요\")",
+    "ArduPilot 4.7 — 장점\n- 파라미터가 SI 단위(m, deg, m/s)로 통일돼 단위 혼동이 줄어든다.[^2][^3]\n- Copter·Plane·Rover·Sub 전 기체 공통 안정 버전이다.[^3]\n- 오토튠 게인 백오프, S-Curve 자세 제어, Auto 원호 경로 등 비행 성능 기능이 추가됐다.[^2]\n- Plane에 Autoland 모드와 QuadPlane 추력 손실 감지가 추가됐다.[^2][^3]\n- EKF3 플래시 사용량 감소, 컴퍼스 없는 광류 지원 강화.[^2]\n- 짐벌·카메라 연동(MAVLink ROI, POI_LOCK 기본 활성화 등)이 개선됐다.[^1][^2]",
+    "요격드론 유도·추격 기술 — 드론 적용 시 고려사항\n- 온보드 처리만으로 요격 루프를 닫으려면 탐지 오탐·표적 전환이 곧 제어 불안정으로 이어진다. SCOUT는 트랙 유지 상태기계로 이를 완화했다.[^1]\n- 추적 정확도와 **요격 가능성**은 다른 지표다. P2P는 예측 궤적이 요격기 기동 제약 안에서 실제로 쫓을 수 있는지를 따로 평가해야 한다고 주장한다.[^2]\n- 원거리 소형 표적은 단일 프레임 탐지기로 찾기 어렵다는 점이 SpeckLock 측정에서도 나타난다. 다만 카메라가 움직이는 상황에서의 효과는 확인되지 않았다.[^3]\n- 다수 요격기 운용에서는 유도 법칙만큼 **표적 할당·우선순위**가 성패를 가른다는 연구가 있다(미분게임, 강화학습, 단계별 편대 전략).[^6][^7][^8]\n- 탑재 컴퓨터 선택은 Jetson Orin Nano 등 엣지 AI 문서 참고(SCOUT가 쓴 하드웨어는 초록에 없음 — 자료 없음)."
+   ],
+   "ctx_docs": [
+    "03_sensor/eo_ir/intel-realsense-d435i",
+    "03_sensor/eo_ir/intel-realsense-d435i",
+    "05_rcws_cuas/cuas_response/interceptor-drone-guidance",
+    "01_software/px4/px4-multicopter-pid-tuning-autotune",
+    "01_software/ardupilot/ardupilot-4-7",
+    "05_rcws_cuas/cuas_response/interceptor-drone-guidance"
+   ],
+   "gold_docs": [
+    "03_sensor/eo_ir/intel-realsense-d435i"
+   ],
+   "rounds": 1,
+   "sec": 5.0
+  },
+  {
+   "id": 4,
+   "kind": "단일 문서",
+   "question": "VPAIR 데이터셋을 사용할 때 300m 이상의 고도에서 발생하는 주요 기술적 어려움은 무엇인가요?",
+   "reference": "VPAIR의 주요 난점은 300m 이상의 조감 시점에서의 면내 회전(in-plane rotation)입니다.",
+   "answer": "등록된 자료에서 근거를 찾지 못했습니다.",
+   "contexts": [
+    "FANET 라우팅 (클러스터 기반·Q-러닝 기반) — 동작 원리\n### 2. TARRAQ — 토폴로지 인식 복원력 라우팅 (Cui 외, IEEE IoT-J 2022)\n- **문제**: FANET은 단일 UAV보다 임무 시간을 줄이고 커버리지를 크게 넓혀 군·민수 응용에서 중요하지만, 동적 토폴로지 변화 때문에 **패킷 전달률(PDR)이 높고 지연이 낮은 에너지 효율적 라우팅** 설계가 어렵다.[^2]\n- **토폴로지 동역학 분석**: UAV 노드의 동적 거동을 **대기행렬 이론(queuing theory)**으로 분석해, **이웃 변화율(NCR)**과 **이웃 변화 도착 간격(NCIT) 분포**의 닫힌 형식 해를 유도했다.[^2]\n- **복원력 있는 감지 주기(SI)**: 실시간 NCR·NCIT를 바탕으로 네트워크 이벤트의 기대 감지 지연을 정의해 감지 주기(sensing interval)를 정한다.[^2]\n- **적응형 Q-러닝**: UAV가 분산적·자율적·적응적으로 라우팅을 결정하며, 위 SI가 행동 공간(action space)을 낮은 비용으로 제때 갱신되게 한다.[^2]",
+    "T-MOTOR MN4014 KV330 — 추력 시험표\n> [!warning] 원문 확인 사항\n> - **온도 열**: T15×5CF 블록에서 50%=45℃, 65%=75℃ 두 값이 추출되었다. 원문 병합 셀 해석 차이일 수 있어 원문 대조가 필요하다. [^1]\n> - **최대 추력 불일치**: 제조사 표기 최대 추력 3.3kg은 공개 시험표(22.2V)의 최대값 2600g보다 크다. 3.3kg의 측정 조건(전압·프로펠러)은 원문에 없으며, 더 높은 전압(최대 8S) 조건일 수 있으나 확인되지 않았다. [^1]\n> - **권장 ESC 셀 범위**: 권장 ESC(Air 40A **2-6S**)는 모터 허용 셀 범위(4-8S) 중 7-8S를 포함하지 않는다. 7-8S 운용 시 ESC를 별도 선정해야 한다. [^1]",
+    "T-MOTOR MN4014 KV330 — 추력 시험표\n> [!note] 추정 — 계산 값 (원문 수치로 산출, 원문에 없는 값)\n> - 추력/무게비 ≈ 2600g ÷ 171g(케이블 포함) ≈ **15.2** (22.2V 시험표 기준). 제조사 표기 3.3kg 기준이면 ≈ 19.3.\n> - \"축당 권장 이륙중량 ≈ 최대추력의 50%\" 업계 경험칙(원문 근거 아님)을 22.2V·17×5.8 시험값에 적용하면 축당 약 **1300g**.",
+    "ModalAI Starling 2 Max (GPS 불능 환경 개발용 드론) — 주요 사양\n> [!note] 추정: 322mm는 모터 간 대각 거리일 가능성\n> 데이터시트의 모터 간 폭 260mm·길이 190mm로 계산한 모터 간 대각은 √(260² + 190²) ≈ 322mm로, 비교 페이지의 \"322mm diagonal\"과 일치한다. [^1] [^7] 따라서 322mm는 모터 축 간 대각, 512mm는 프로펠러 끝~끝 기준일 가능성이 높다. 원문이 측정 기준을 명시하지 않으므로 추정이다.",
+    "ModalAI Starling 2 Max (GPS 불능 환경 개발용 드론) — 주요 사양\n> [!warning] 출처 간 불일치\n> - **이륙 중량**: 데이터시트·제품 페이지 566g [^1] [^2] / 비교 페이지·보도자료·PX4 가이드 500g [^7] [^3] [^4].\n> - **대각 크기**: 데이터시트 512mm(프로펠러 끝~끝) [^1] / 비교 페이지 \"322mm diagonal\" [^7].\n> - **비행 시간**: 데이터시트·제품 페이지 약 55분(Amprius 셀, Li-ion 약 40분) [^1] [^2] / 비교 페이지 \">55 minutes\" [^7] / 보도자료 \"55+ minutes\" [^3].\n> - **가격(같은 날 2026-10-04)**: 제품 페이지 USD 4,199.99부터 / 비교 페이지 USD 3,199.99부터(같은 페이지 상품 카드는 USD 4,199.99). [^2] [^7] 어느 쪽이 실제 판매가인지는 원문으로 확인되지 않는다 — 구매 전 ModalAI에 직접 확인 필요.",
+    "NATO C-UAS Data Challenge 2026 — 대회 개요\n- NCIA 발췌문은 소형 드론을 \"군사 작전과 핵심 기반시설에 대해 가장 빠르게 커지는 위협 중 하나\"로 보고, 여러 센서의 복잡하고 파편화된 데이터를 명확한 작전 상황도로 바꾸는 일이 여전히 큰 기술 과제라고 설명한다.[^1] (검색 발췌)\n\n> [!note] 표현 차이\n> ICE 이탈리아어 원문은 과제를 \"UAS가 갖춘(di cui gli UAS sono dotati) 여러 센서의 데이터 통합\"으로 표현하지만, NCIA 발췌문은 레이더·RF·카메라·음향 등 **드론을 탐지하는 센서**의 융합으로 설명한다. 공식 과제 정의는 NCIA 원문으로 확인해야 한다.[^1]\n\n> [!note] 공개 출처로 확인되지 않은 항목\n> 참가 자격의 세부 문구(국적 제한 여부), 세부 과제 구분, 제공 데이터의 출처·형식, 연동 표준·메시지 규격의 지정 여부는 이번에 확인한 공개 출처에 없다(자료 없음).[^1]"
+   ],
+   "ctx_docs": [
+    "07_swarm/algorithms/fanet-routing",
+    "02_hardware/propulsion/tmotor-mn4014-kv330",
+    "02_hardware/propulsion/tmotor-mn4014-kv330",
+    "02_hardware/airframe/modalai-starling-2-max",
+    "02_hardware/airframe/modalai-starling-2-max",
+    "05_rcws_cuas/programs_events/nato-cuas-data-challenge-2026"
+   ],
+   "gold_docs": [
+    "04_ai_detection_tracking/datasets/uav-satellite-geolocalization-datasets"
+   ],
+   "rounds": 1,
+   "sec": 3.6
+  },
+  {
+   "id": 5,
+   "kind": "단일 문서",
+   "question": "네트 포획 요격드론에서 표적을 탐지하고 추적할 때 어떤 기술들이 사용되나요?",
+   "reference": "LiDAR를 통해 DBSCAN 군집화와 MHE(Moving Horizon Estimation)로 이동 구간을 추정하며, YOLO 신경망을 이용해 비전으로 표적을 검증합니다.",
+   "answer": "네트 포획 요격드론의 표적 탐지 및 추적에는 온보드 시각 인지, LiDAR와 카메라를 활용한 센서 구성, 그리고 강화학습 기반의 제어 기술 등이 사용됩니다.\n\n세부적인 기술 내용은 다음과 같습니다.\n\n*   **센서 및 인지 기술**: \n    *   요격기 탑재 센서를 통해 종말 단계에서 정밀하게 탐지하며, SWaP(크기·무게·전력) 제약을 고려하여 LiDAR(탐지 및 거리 측정)와 카메라(확인)가 역할을 분담하는 구성이 예로 제시됩니다 [2].\n    *   온보드 시각 인지와 추적을 유도 입력으로 연결하는 연구가 진행되고 있습니다 [5].\n    *   드론 탐지를 위한 모델로는 UAV-DETR, YOLO26 등이 있습니다 [6].\n    *   추적 프레임워크로는 Stone Soup이 사용됩니다 [6].\n\n*   **유도 및 제어 기술**:\n    *   비례항법(PN) 계열의 유도 법칙이 사용됩니다 [5].\n    *   추격-회피 강화학습(Sanchez Roncero 외) 등의 기술이 비교되고 있으며, 추격-회피 게임을 강화학습으로 해결하는 제어기 연구가 포함됩니다 [1, 5].\n    *   민첩한 표적 추격 제어기를 학습할 때는 상대 정책 과적합을 방지하기 위한 훈련 방식(PFSP 등)과 저수준 명령(CTBR)을 사용하는 것이 성능에 중요하다고 보고되었습니다 [2].",
+   "contexts": [
+    "네트 포획 요격드론 — 관련 제품·기술\n- 요격드론 유도·추격 기술 — 추격-회피 강화학습(Sanchez Roncero 외) 등 비교\n- 군집 기반 대드론 — Brust 등의 포획 편대(capture-formation)\n- 다중 에이전트 강화학습 UAV 제어\n- 그물 포획 상용 제품: 수집된 자료 없음",
+    "네트 포획 요격드론 — 드론 적용 시 고려사항\n- 그물 포획은 지상 센서 정밀도만으로는 부족해, 종말 단계에서 요격기 탑재 센서가 필요하다는 것이 Rothe 등의 문제 설정이다.[^1]\n- 탑재 센서는 SWaP 제약이 크므로 LiDAR(탐지·거리)와 카메라(확인)를 역할 분담하는 구성이 한 예다.[^1]\n- 민첩 표적 추격 제어기를 학습할 때는 상대 정책 과적합을 막는 훈련 방식(PFSP 등)과 저수준 명령(CTBR) 사용이 성능에 중요했다고 보고된다.[^3]\n- 관련 센서 문서: LiDAR",
+    "군집 협력 감지·탐사 — 드론 적용 시 고려사항\n- 숲·재난 현장처럼 사람이 접근하기 어려운 곳의 수색·구조에 군집을 쓰는 것이 실현 가능하고 효율적임을 보였다고 저자들은 밝힌다.[^1]\n- 나노 UAV급 기체에서는 SLAM·커버리지 알고리즘을 제한된 하드웨어에 올리는 것 자체가 핵심 과제다.[^2]\n- **고장 대응 설계**: 일부 기체의 구동기 손상을 가정하고 분산 과업 재할당을 넣은 프레임워크가 실외 비행으로 검증된 사례가 있다.[^3]\n- **도심 측정 차폐**: 건물 때문에 일부 센서가 신호를 못 받는 상황을 전제로, 대략 추정(RSS) → 궤적 조정 → 정밀 추정(TDOA·DFS) 순서로 군집 궤적과 추정을 결합하는 방법이 제안됐다(시뮬레이션).[^4]",
+    "군집 협력 감지·탐사 — 개요\n> [!quote] 원문(English): [Drone swarm strategy for the detection and tracking of occluded targets in complex environments](https://doi.org/10.1038/s44172-023-00104-0)\n> 이 문서는 영문 논문의 초록을 한국어로 번역·정리한 것입니다. 추가 원문: [tinySLAM-based exploration with a swarm of nano-UAVs](https://arxiv.org/abs/2309.02834) · [Fault-tolerant cooperative navigation of networked UAV swarms for forest fire monitoring](https://doi.org/10.1016/j.ast.2022.107494) · [Source Localization Based on UAV Swarm Trajectory Optimization with Incomplete Measurements](https://doi.org/10.1109/ICCCWorkshops62562.2024.10693730) · [A multi-depot provisioned UAV swarm trajectory optimization scheme ...](https://doi.org/10.1016/j.adhoc.2025.103974)(서지만).",
+    "요격드론 유도·추격 기술 — 요약\n요격드론(방어 드론)이 적 드론을 **탐지·추적한 뒤 접근해 무력화**하기까지의 인지-유도-제어 기술을 다룬 연구들을 정리한다. 크게 (1) 온보드 시각 인지와 추적을 유도 입력으로 연결하는 연구,[^1][^2][^3] (2) 비례항법(PN) 계열 유도 법칙,[^3][^4] (3) 추격-회피 게임을 강화학습으로 푸는 제어기,[^5] (4) 다수 요격기의 표적 할당·협조 기동[^6][^7][^8][^9]으로 나뉜다. 모두 연구 단계이며, 실기체 시험이 보고된 것은 SCOUT,[^1] Sanchez Roncero 등,[^5] Liu 등[^9]이다.\n\n> [!note] 범위\n> 네트 포획형 요격은 네트 포획 요격드론, 다수 방어 드론의 군집 구성은 군집 기반 대드론에서 다룬다.",
+    "요격드론 유도·추격 기술 — 관련 제품·기술\n- 제품: Nearthlab KAiDEN (제조사가 표적 비행경로 분석 기반 요격 궤적 계산을 주장), Perennial Merops, Harmattan AI Gobi, Anduril Anvil\n- 네트 포획 요격드론 — 같은 경쟁 강화학습 계열(Gavin 외)\n- 군집 기반 대드론\n- 다중 에이전트 강화학습 UAV 제어\n- UAV-DETR, YOLO26 — 드론 탐지 모델\n- Stone Soup — 추적 프레임워크\n- 2026 요격드론·대드론 도입 동향"
+   ],
+   "ctx_docs": [
+    "05_rcws_cuas/cuas_response/net-capture-interceptors",
+    "05_rcws_cuas/cuas_response/net-capture-interceptors",
+    "07_swarm/algorithms/swarm-cooperative-sensing-exploration",
+    "07_swarm/algorithms/swarm-cooperative-sensing-exploration",
+    "05_rcws_cuas/cuas_response/interceptor-drone-guidance",
+    "05_rcws_cuas/cuas_response/interceptor-drone-guidance"
+   ],
+   "gold_docs": [
+    "05_rcws_cuas/cuas_response/net-capture-interceptors"
+   ],
+   "rounds": 1,
+   "sec": 9.5
+  },
+  {
+   "id": 6,
+   "kind": "단일 문서",
+   "question": "무인동력비행장치 안전성인증을 신청할 때 방송통신기자재 적합성평가나 농업기계 검정도 같이 신청할 수 있나요?",
+   "reference": "무인동력비행장치 안전성인증 신청 시 '방송통신기재등의 적합성평가' 및 '농업기계 검정' 신청서를 기술원에 함께 제출할 수 있습니다. 이 경우 기술원이 국립전파연구원과 농업기계실용화재단 등 각 담당기관으로 서류를 송부합니다.",
+   "answer": "네, 무인동력비행장치 안전성인증 신청 시 적합성평가 신청서를 항공안전기술원 창구로 함께 제출할 수 있습니다 [3].\n\n세부 사항은 다음과 같습니다.\n\n*   **적합성평가**: 무인동력비행장치 안전성인증 신청 시 적합성평가 신청서를 항공안전기술원(KIAST) 창구로 함께 낼 수 있으며, 기술원이 이를 국립전파연구원으로 송부합니다 [3]. 다만, 결과는 각 기관이 따로 통보합니다 [3].\n*   **농업기계 검정**: 드론첨단기술 지정을 받은 자는 안전성인증, 적합성평가와 함께 농업기계 검정을 받은 것으로 간주(의제)됩니다 [3].\n\n등록된 자료에서 농업기계 검정을 안전성인증과 동시에 신청할 수 있는지에 대한 직접적인 근거는 찾지 못했습니다. 다만, 드론첨단기술 지정 시 해당 검정을 받은 것으로 본다는 규정은 존재합니다 [3].",
+   "contexts": [
+    "전파법 적합성평가와 드론법상 안전성인증 특례 — 관련 제품·기술\n- 무인동력비행장치 안전성인증·신고 의무\n- 초경량비행장치 기술기준 (별표 6 제10절)\n- KIAST 안전성인증 절차 (제26조 접수창구 단일화)\n- 데이터링크 — 텔레메트리·영상 전송 장비",
+    "초경량비행장치 조종자 전문교육기관 지정기준 — 관련 제품·기술\n- 무인멀티콥터 조종자 증명 (1~4종)\n- 무인동력비행장치 안전성인증·신고 의무 — 훈련용 기체의 신고·인증 대상 여부.",
+    "전파법 적합성평가와 드론법상 안전성인증 특례 — 요약\n- **(a) 전파법 적합성평가**: 방송통신기자재와 전자파장해를 주거나 받는 기자재를 **제조·판매·수입**하려는 자는 적합성평가(적합인증·적합등록·자기적합확인·잠정인증)를 받아야 한다. 소관은 **과학기술정보통신부**다. [^1] 항공안전법 제124조의 **안전성인증(국토교통부 소관, 기체의 비행안전)과는 별개 제도**다. [^1] [^2] [^3]\n- 초경량비행장치 기술기준 별표 6은 무인동력비행장치에 무선 기기를 쓸 경우 **적합성평가를 받은 제품**을 쓰도록 요구한다(대상이 아니면 제외). 즉 안전성인증 과정에서 적합성평가 여부가 **확인 항목**이 된다. [^5] [^6]\n- 무인동력비행장치 안전성인증 신청 시 적합성평가 신청서를 항공안전기술원 창구로 함께 낼 수 있고, 기술원이 **국립전파연구원**으로 송부한다. 결과는 각 기관이 따로 통보한다. [^4]\n- **(b) 드론법 특례 — 예외 규정**: 「드론 활용의 촉진 및 기반조성에 관한 법률」은 ① **드론특별자유화구역** 안에서 안전성인증·시험비행허가·적합성평가 등을 대통령령에 따라 **유예·면제·간소화**할 수 있게 하고(제10조②), ② **드론첨단기술 지정**을 받은 자는 안전성인증·적합성평가·농업기계 검정을 **받은 것으로 보며(의제) 수수료를 면제**한다(제14조). [^2] [^3]",
+    "초경량비행장치 기술기준 — 무인동력비행장치 기술요건 — 드론 적용 시 고려사항\n**원문에 근거한 사실**\n- 안전성인증 대상(MTOW 25kg 초과 무인동력비행장치)은 이 기준 별표 6 Part 1을 충족해야 하며, 인증 시 추가 시험·계산·입증자료를 요구받을 수 있다. [^2] [^7] (대상 경계: unmanned aircraft safety certification registration)\n- **페일세이프 설계가 명시적 요구사항이다.** C2 링크 상실 시 사전 결정된 절차를 자동·즉시 실행해야 하고, 그 절차는 비행매뉴얼에 있어야 한다. [^8]\n- **잔여 에너지 정보·경고** 제공, **운영 한계 초과 예방 수단**, **공간적 한계(비행 경로) 유지** 기능이 요구된다. [^7] [^8]\n- **SW 형상관리**가 요구된다: 비행제어장치·명령장치 SW의 안전 영향 확인과 변경사항 추적·관리. [^8]\n- 명령장치가 여러 대일 때 **한 번에 하나만 제어**하도록 이양 능력을 보장해야 한다. [^8]\n- 무선 기기는 전파법 적합성평가 제품, 수소 동력원은 수소용품 검사 제품을 써야 한다(대상이 아니면 제외). [^9] → drone certification exemption and kc\n- 비행매뉴얼과 정비매뉴얼은 필수 산출물이다. [^9]\n- 제작자는 품질시스템, 안전성 시험절차, 사용자 매뉴얼, 생산 문서 보존, 안전지시·기술회보 발행, 결함 접수 체계를 갖춰야 한다. [^4]\n- 자체 설계·제작 기체나 검증되지 않은 설계 방법으로 개조한 기체는 \"연구·개발 중\"으로 시험비행 허가(1년 이내)를 받아 비행할 수 있다. [^3]",
+    "항공안전기술원(KIAST) 초경량비행장치 안전성인증 절차 — 관련 제품·기술\n- 초경량비행장치 기술기준 (고시 제2024-387호) — 인증 판정의 기준\n- 무인동력비행장치 안전성인증·신고 의무 — 대상, 벌칙·과태료, 수수료 법적 근거\n- 전파법 적합성평가와 드론법상 인증 특례\n- 무인멀티콥터 조종자 증명 — 시험비행 조종사 자격 관련",
+    "무인동력비행장치 안전성인증·신고 의무 — 요약\n- **안전성인증**: 국토교통부령으로 정하는 초경량비행장치는 시험비행 등으로 허가받은 경우를 제외하고, 지정 기관·단체로부터 비행안전 기술기준 적합 안전성인증을 받지 않으면 비행할 수 없다. [^1] 무인동력비행장치 중에서는 **최대이륙중량 25kg 초과**가 대상이다. [^2]\n- **신고 면제**: 무인동력비행장치 중 **최대이륙중량 2kg 이하**인 것은 항공기대여업·항공레저스포츠사업·초경량비행장치사용사업에 사용되지 않는 경우 신고를 필요로 하지 않는다. [^3]\n- **제재**: 안전성인증 없는 기체를 **조종자 증명도 없이** 비행하면 1년 이하 징역 또는 1천만원 이하 벌금(제161조②1호). [^5] 안전성인증만 받지 않고 비행하면 500만원 이하 과태료(제166조①10호, 제161조②1호가 적용되는 경우 제외). [^6]\n- **유효기간·절차**: 인증 유효기간은 발급일로부터 2년이며, 세부 절차는 항공안전기술원 운영세칙이 정한다. [^8] → kiast safety certification procedure"
+   ],
+   "ctx_docs": [
+    "06_regulation_market/regulation_kr/drone-certification-exemption-and-kc",
+    "06_regulation_market/regulation_kr/ultralight-pilot-training-institution",
+    "06_regulation_market/regulation_kr/drone-certification-exemption-and-kc",
+    "06_regulation_market/regulation_kr/ultralight-technical-standard",
+    "06_regulation_market/regulation_kr/kiast-safety-certification-procedure",
+    "06_regulation_market/regulation_kr/unmanned-aircraft-safety-certification-registration"
+   ],
+   "gold_docs": [
+    "06_regulation_market/regulation_kr/kiast-safety-certification-procedure"
+   ],
+   "rounds": 1,
+   "sec": 8.2
+  },
+  {
+   "id": 7,
+   "kind": "단일 문서",
+   "question": "저가형 COTS 드론을 활용해 실내에서 군집 실험을 진행한 사례가 있나요?",
+   "reference": "군집 ISAC 배치 최적화와 COTS 드론 편대(AirSwarm)를 통해 저가 기체 실내 군집 실험 사례가 있습니다.",
+   "answer": "네, 저가 기체인 COTS 드론 편대를 활용하여 실내 군집 실험을 진행한 사례가 있습니다 [1].",
+   "contexts": [
+    "Swarm Drone Challenge 2026 — 관련 제품·기술·회사\n- MARL 기반 UAV 제어 — 학습 기반 군집 제어\n- 다목적 군집 임무 계획 — 과업 할당\n- 드론 군집 충돌회피 개요\n- 군집 로보틱스 개요와 생물 영감\n- 군집 ISAC 배치 최적화와 COTS 드론 편대(AirSwarm) — 저가 기체 실내 군집 실험 사례\n- MBDA Germany, brigkAIR — 위키 회사 문서 없음 (회사 문서 추가 후보)\n- 07 군집 개요",
+    "음향 기반 드론 탐지 — 로터 소리로 드론을 찾는 패시브 센싱 — 요약\n패시브 음향 센싱은 은밀하고 저렴하며, 레이더 반사 면적(RCS)이 작거나 전파 방출이 거의 없는 드론에도 효과적이어서 대드론 방어에 매력적인 방식으로 소개된다. [^1] 드론 로터가 내는 **고조파(harmonics)** 를 듣고 탐지하며, 마이크 어레이로 방향까지 추정할 수 있다. [^1] [^2] 공개 사례로 재현 가능한 연구 파이프라인 **EchoHawk**(논문) [^1], 마이크 4개·ESP32-S3 기반 저가 경보 장치 **VolAnti**(오픈 하드웨어) [^2], RF·음향·패시브 레이더를 융합하려는 초기 연구 **Tacet** [^3]이 있다.",
+    "Swarm Drone Challenge 2026 — 기술·제품 관점 (드론 엔지니어에게 의미)\n- **게임 원리**: 두 팀이 드론 케이지 안에서 자율 드론 군집으로 경쟁하며, 목표는 **전략적 군집 협조, 지능형 알고리즘, 전술적 우위**로 깃발을 확보하는 것이다.[^1]\n- **요구 역량(홈페이지 서술 기준)**: 드론 기술과 머신러닝을 함께 다루는 대회로 소개된다.[^1]\n- 필요 장비, 기체 규격, 지원 플랫폼(시뮬레이터·통신 방식)은 **자료 없음**(FAQ 답변 미추출).[^1]\n\n> [!note] 추정 — 관련 위키 주제\n> 홈페이지가 \"전략적 군집 협조, 지능형 알고리즘\"을 핵심으로 들고 있으므로,[^1] 군집 임무 할당·MARL·실내 충돌회피 문서가 준비에 참고가 될 수 있다. 실제 대회 규칙이 어떤 알고리즘을 허용·요구하는지는 규칙 저장소 확인 전까지 알 수 없다.",
+    "군집 통신 제약·합의·분산 의사결정 — 성능·한계\n- Talamali 외의 실험은 **지상 소형 로봇(Kilobot)**으로 한 것이다.[^1] 항공 군집에서 같은 결과가 나오는지는 초록 범위에서 확인되지 않는다.\n- SwarmRaft는 **시뮬레이션 프로토타입** 수준으로 기술돼 있다.[^2] 실제 비행 시험 여부는 자료 없음.\n- SwarmRaft 초록은 arXiv v2 기준이며 출판사판 초록과 다를 수 있다.[^2]",
+    "UAV 궤적-통신 공동설계 — 드론 적용 시 고려사항\n> [!note] 추정 — 실기체 적용 간극\n> 5편의 초록은 모두 모델·시뮬레이션 수준 결과만 언급한다.[^1][^2][^3][^4][^5] 실제 비행 제어기(PX4·ArduPilot 등)의 웨이포인트 임무로 옮길 때 필요한 제약(최소 선회반경·속도 한계·통신 모델 오차)은 초록에서 다루지 않으므로 별도 검증이 필요하다. 근거: 초록에 실비행 언급 없음.",
+    "드론 자율 내비게이션 연구 동향 (논문 6편) — 개요\n> [!quote] 원문(English): [CoDrone (arXiv 2512.19083)](https://arxiv.org/abs/2512.19083) · [FM-Planner (arXiv 2505.20783)](https://arxiv.org/abs/2505.20783) · [Contextualized Drone Navigation using LLMs (arXiv 2504.00607)](https://arxiv.org/abs/2504.00607) · [Learning by Cheating (arXiv 2111.06056)](https://arxiv.org/abs/2111.06056) · [Multiple Stereo Vision Camera Designs (arXiv 2105.12691)](https://arxiv.org/abs/2105.12691) · [DCNN-Based Autonomous Drone Navigation (arXiv 1905.01657)](https://arxiv.org/abs/1905.01657)\n> 이 문서는 영문 원문을 한국어로 번역·정리한 것입니다. 6편 모두 **초록만** 수집했으므로 본문의 실험 조건·하드웨어·세부 수치는 반영되지 않았습니다."
+   ],
+   "ctx_docs": [
+    "07_swarm/swarm-drone-challenge-2026",
+    "03_sensor/acoustic/acoustic-drone-detection",
+    "07_swarm/swarm-drone-challenge-2026",
+    "07_swarm/algorithms/swarm-communication-consensus",
+    "02_hardware/datalink/uav-trajectory-communication-codesign",
+    "01_software/autonomous-navigation-research"
+   ],
+   "gold_docs": [
+    "07_swarm/swarm-drone-challenge-2026"
+   ],
+   "rounds": 1,
+   "sec": 3.5
+  },
+  {
+   "id": 8,
+   "kind": "단일 문서",
+   "question": "T-MOTOR 제품 중에서 IP45 등급을 지원하는 모터 모델명이 무엇인가요?",
+   "reference": "tmotor mn505 s kv320 모델이 Navigator 계열이며 IP45를 지원합니다.",
+   "answer": "T-MOTOR MN505-S KV320 모델이 IP45 등급을 지원합니다 [1]. 이 모터는 우천 및 먼지 환경 운용이 가능한 IP45 모터입니다 [2].",
+   "contexts": [
+    "T-MOTOR MN505-S KV320 (IP45) — 요약\nT-MOTOR Navigator 계열 MN505-S의 KV320 버전으로, 6S 정격·20-22인치 프로펠러용 IP45 모터다(모터+케이블 225g, 피크 55A·1300W/180초, 제조사 표기 최대 추력 6.6kg). 권장 ESC는 FLAME 60A 12S다. [^1]",
+    "T-MOTOR MN505-S KV320 (IP45) — 추천 상황 / 비추천 상황\n- 추천: 6S 전원·20-22인치 프로펠러로 축당 높은 추력이 필요한 중대형 멀티로터, 우천·먼지 환경 운용(IP45). [^1]\n- 비추천: 6S 초과 고전압 시스템(원문 근거 없음 → 6-12S인 tmotor mn501 s kv240 또는 6-12S인 kde direct kde5215xf 220 검토), 17-18인치 프로펠러(같은 계열 KV380이 해당). [^1] [^2] [^3]",
+    "T-MOTOR MN3508 KV380 — 요약\nT-MOTOR의 Navigator 계열 UAV용 BLDC 모터(스테이터 Φ35×8mm, 12N14P)의 KV380 버전으로, 3-6S에서 12~16인치급 프로펠러와 조합한 시험 데이터가 공개되어 있다. 제조사 권장 프로펠러는 T-MOTOR P15×5, 권장 ESC는 Air 20A 3-4S다. [^1]",
+    "T-MOTOR MN3508 KV380 — 호환성\n- 권장 프로펠러: T-MOTOR P15×5 (위키 문서 없음) [^1]\n- 권장 ESC: T-MOTOR Air 20A 3-4S (위키 문서 없음) [^1]",
+    "T-MOTOR MN4014 KV330 — 호환성\n- 권장 프로펠러: T-MOTOR P17×5.8\" (위키 문서 없음) [^1]\n- 권장 ESC: T-MOTOR Air 40A 2-6S (위키 문서 없음) [^1]",
+    "T-MOTOR MN501-S KV240 — 호환성\n- 권장 프로펠러: 14-15인치 / 20-22인치. 시험에 쓰인 프로펠러는 T-MOTOR P14×4.8, P15×5, P22×6.6 (위키 문서 없음) [^1]\n- 권장 ESC: T-MOTOR AIR 40A (위키 문서 없음) [^1]"
+   ],
+   "ctx_docs": [
+    "02_hardware/propulsion/tmotor-mn505-s-kv320",
+    "02_hardware/propulsion/tmotor-mn505-s-kv320",
+    "02_hardware/propulsion/tmotor-mn3508-kv380",
+    "02_hardware/propulsion/tmotor-mn3508-kv380",
+    "02_hardware/propulsion/tmotor-mn4014-kv330",
+    "02_hardware/propulsion/tmotor-mn501-s-kv240"
+   ],
+   "gold_docs": [
+    "companies/tmotor"
+   ],
+   "rounds": 1,
+   "sec": 2.8
+  },
+  {
+   "id": 9,
+   "kind": "단일 문서",
+   "question": "Betaflight CLI에서 설정한 슬라이더 값을 적용하고 싶을 때는 어떤 명령어를 사용해야 하나요?",
+   "reference": "`simplified_tuning apply` 명령어를 사용하여 간소화 튜닝(simplified tuning) 슬라이더 값을 적용할 수 있습니다.",
+   "answer": "등록된 자료에서 해당 내용을 찾을 수 없습니다.\n\nBetaflight CLI는 자이로·필터 튜닝, PID, 레이트 등 다양한 설정을 바꾸고 구성하는 기능을 제공하지만 [1], 특정 슬라이더 값을 적용하기 위한 명령어에 대해서는 자료에 명시되어 있지 않습니다 [1, 2].",
+   "contexts": [
+    "Betaflight CLI (명령줄 인터페이스) — 요약\nBetaflight는 설정을 바꾸고 비행 제어기(FC)를 구성하는 명령줄 인터페이스(CLI)를 제공한다.[^1] 공식 레퍼런스는 **Betaflight 2025.12** 기준으로 자이로·필터 튜닝, PID, 레이트, 페일세이프, GPS, 배터리 감시, OSD, LED 스트립, VTX, 텔레메트리, 하드웨어 구성 등 모든 CLI 명령과 변수를 다룬다.[^1] 원문은 \"defaults and ranges may differ in older versions.\" — 이전 버전에서는 기본값과 범위가 다를 수 있다고 밝힌다.[^1]",
+    "Betaflight CLI (명령줄 인터페이스) — 동작 원리\n### 변수 표기 예시 (전체 목록 아님)\n| 변수 | 기본값 | 범위 | 출처 |\n|---|---|---|---|\n| `small_angle` | 25 | 0–180 | [^1] |\n| `failsafe_procedure` | DROP | AUTO-LAND, DROP, GPS-RESCUE | [^1] |\n| `motor_pwm_protocol` | DSHOT600 | PWM, ONESHOT125, DSHOT300, DSHOT600, PROSHOT1000, DISABLED | [^1] |\n\n전체 변수는 원문 참고.[^1]",
+    "dRehmFlight — 대안·비교\n- PX4 · ArduPilot — 범용 오픈소스 오토파일럿. 직접 비교 원문은 자료 없음.\n- Betaflight CLI — 다른 오픈소스 FC 펌웨어(Betaflight) 관련 문서. 직접 비교 원문은 자료 없음.",
+    "dRehmFlight — 요약\ndRehmFlight는 Nicholas Rehm이 공개한 \"open source flight controller for small micro aerial vehicles\" — 소형 마이크로 비행체용 오픈소스 비행 제어 코드로, 취미가·교육자를 대상으로 한다.[^1] **Teensy 4.0 마이크로컨트롤러 + MPU6050 IMU**라는 단순한 하드웨어에서 Arduino IDE로 동작하며, 코드를 \"intuitive, easy to follow, and most importantly: all in one place\" — 직관적이고 따라가기 쉽게, 한곳에 모아 두었다.[^1] 쿼드로터뿐 아니라 틸트로터·사이클로콥터 등 비정형 VTOL 기체 시제작에 쓰였다.[^1] 라이선스는 GPL-3.0이고, README 기준 버전은 \"Beta 1.3\", 마지막 코드 갱신은 2025-01-20이다.[^1]",
+    "SAPIENT — 대드론 다중 센서 연동 인터페이스 표준 (BSI Flex 335) — 동작 원리 (구조·메시지)\n| 항목 | 내용 | 출처 |\n|---|---|---|\n| 정식 명칭 | Sensing for Asset Protection with Integrated Electronic Networked Technology | [^2] |\n| 소유·개발 | Dstl이 아키텍처 소유. MOD·Innovate UK 공동 프로젝트에서 시작 | [^2] |\n| 노드 구성 (GOV.UK ICD 설명) | 센서 노드, 의사결정 노드, SAPIENT 미들웨어, GUI | [^1] |\n| 노드 구성 (BSI Flex 335 v1.0 설명) | 센서 엣지 노드(sensor edge nodes), 이펙터 노드(effector nodes), 융합 노드(fusion nodes) | [^2] |\n| 규정 범위 | SAPIENT 메시지의 \"structure, format and content\"(구조·형식·내용) | [^2] |\n| 메시지 인코딩 | ICD v7.0(2023-03-21)에서 XML 기반 → 바이너리 **Protobuf** 기반으로 전환 | [^1] |\n| 기계 판독용 정의 | 2023-04-12 갱신에서 machine-readable definitions 링크 추가 | [^1] |\n| 오픈소스 코드 | 2022-06-22 갱신에서 오픈소스 테스트 하니스·미들웨어 코드 링크 추가 (URL 미수집) | [^1] |",
+    "PX4 멀티콥터 PID 튜닝 (수동·오토튠) — 절차\n### 수동 튜닝 — 각속도 제어기 단계\n1. Position 모드로 호버링[^1]\n2. QGroundControl의 PID Tuning 화면 진입[^1]\n3. 추력 곡선(thrust curve) 값 설정 — PWM 제어 ESC와 RPM 기반 ESC에 서로 다른 값 사용[^1] (값은 아래 \"원문 재확인 필요\")\n4. 튜닝할 축 선택 (롤부터 권장)[^1]\n5. 필요하면 자동 비행 모드 전환 활성화[^1]\n6. Acro, Stabilized 또는 Altitude 모드로 전환[^1]\n7. 조종 스틱을 전 범위로 빠르게 움직이며 응답 그래프 관찰[^1]\n8. 화면 슬라이더로 P·I·D 조정[^1]\n\n피치·요 축도 반복하며, 피치는 처음에 롤 값을 그대로 쓰는 경우가 많다.[^1] 시험은 호버링 중 빠른 스틱 입력을 주고, 기체가 진동·오버슈트 없이 즉시 반응해 \"잠긴 듯한(locked-in)\" 느낌이 나면 된다.[^2]"
+   ],
+   "ctx_docs": [
+    "01_software/betaflight-cli",
+    "01_software/betaflight-cli",
+    "02_hardware/flight_controller/drehmflight",
+    "02_hardware/flight_controller/drehmflight",
+    "05_rcws_cuas/cuas_detection/sapient-standard",
+    "01_software/px4/px4-multicopter-pid-tuning-autotune"
+   ],
+   "gold_docs": [
+    "01_software/betaflight-cli"
+   ],
+   "rounds": 1,
+   "sec": 4.3
+  },
+  {
+   "id": 10,
+   "kind": "단일 문서",
+   "question": "T-MOTOR MN501-S KV240 모터를 P15×5 프롭과 48.52V 조건에서 사용할 때, 추력 대비 무게비는 어느 정도로 계산되나요?",
+   "reference": "추력/무게비는 약 27.4(4660g ÷ 170g)로 계산됩니다.",
+   "answer": "추력/무게비는 약 27.4로 계산됩니다 [2].\n\n해당 모터를 P15×5 프로펠러와 48.52V 조건에서 사용할 때, 추력(약 4660g)을 무게(170g)로 나눈 값입니다 [2].",
+   "contexts": [
+    "T-MOTOR MN501-S KV240 — 주요 사양\n시리즈 참고: 모터 무게는 KV에 따라 170-175g, 권장 프로펠러는 KV300이 20-22인치, KV360이 17-18인치다. KV300·KV360 시험표는 원문 페이지 참조. [^1]",
+    "T-MOTOR MN501-S KV240 — 추력 시험표\n> [!note] 추정 — 계산 값 (원문 수치로 산출, 원문에 없는 값)\n> - 추력/무게비 ≈ 4660g ÷ 170g ≈ **27.4** (48.52V, P15×5, 100%).\n> - \"축당 권장 이륙중량 ≈ 최대추력의 50%\" 업계 경험칙(원문 근거 아님) 적용 시: P15×5(약 48.5V) 축당 약 **2330g**, P22×6.6(약 24.3V) 축당 약 **2090g**(100% 값 4187g의 신뢰성은 위 경고 참조).",
+    "T-MOTOR MN4014 KV330 — 추력 시험표\n> [!note] 추정 — 계산 값 (원문 수치로 산출, 원문에 없는 값)\n> - 추력/무게비 ≈ 2600g ÷ 171g(케이블 포함) ≈ **15.2** (22.2V 시험표 기준). 제조사 표기 3.3kg 기준이면 ≈ 19.3.\n> - \"축당 권장 이륙중량 ≈ 최대추력의 50%\" 업계 경험칙(원문 근거 아님)을 22.2V·17×5.8 시험값에 적용하면 축당 약 **1300g**.",
+    "T-MOTOR MN3508 KV380 — 장점\n- 3-6S의 넓은 셀 범위와 12~16인치 프로펠러에 대한 시험 데이터가 공개되어 있어 프로펠러·전압 선택 비교가 쉽다. [^1]\n- 14.8V·50% 스로틀에서 18.16~18.19 g/W의 효율이 측정되었다(T14×4.8CF, T15×5CF). [^1]",
+    "T-MOTOR MN505-S KV320 (IP45) — 장점\n- IP45 방수·방진, 수입 규소강판 스테이터 방청 처리, 180℃ 내열 자석·220℃ 동선 등 내환경 사양이 명시되어 있다. [^1]\n- 6S(약 24V)에서 22인치 프로펠러로 6680g(100%)의 추력이 측정되었다. [^1]\n- 피크 55A·1300W(180초)로, 같은 외경의 tmotor mn501 s kv240(25A·1200W)보다 전류 여유가 크다. [^1] [^2]",
+    "T-MOTOR MN4014 KV330 — 추력 시험표\n22.2V 조건, KV330. 원문 표기 그대로다. [^1]\n\n**대표 조건 (권장 프로펠러 17×5.8)**"
+   ],
+   "ctx_docs": [
+    "02_hardware/propulsion/tmotor-mn501-s-kv240",
+    "02_hardware/propulsion/tmotor-mn501-s-kv240",
+    "02_hardware/propulsion/tmotor-mn4014-kv330",
+    "02_hardware/propulsion/tmotor-mn3508-kv380",
+    "02_hardware/propulsion/tmotor-mn505-s-kv320",
+    "02_hardware/propulsion/tmotor-mn4014-kv330"
+   ],
+   "gold_docs": [
+    "02_hardware/propulsion/tmotor-mn501-s-kv240"
+   ],
+   "rounds": 1,
+   "sec": 3.7
+  },
+  {
+   "id": 11,
+   "kind": "단일 문서",
+   "question": "MicoVIO 센서를 사용할 때 전력 소모량과 인터페이스 규격은 어떻게 되나요?",
+   "reference": "소비 전력은 일반 1 W(5 V, 평균 200 mA)이며, 인터페이스는 MAVLink 2(3.3 V LVTTL UART)를 사용합니다.",
+   "answer": "MicoVIO의 인터페이스 규격은 MAVLink 2 UART입니다 [1].\n\n전력 소모량에 대해서는 등록된 자료에서 근거를 찾지 못했습니다 [1, 2].",
+   "contexts": [
+    "MicoVIO (MicoAir Tech 시각-관성 오도메트리 센서) — 대안·비교\n비교 수치는 각 문서의 출처를 따른다. MicoVIO는 MAVLink 2 UART 인터페이스를 갖춘 일체형 모듈로 표기되어 있고(컴패니언 컴퓨터 필요 여부는 원문에 명시 없음), 아래 카메라 기반 구성은 컴패니언 컴퓨터에서 VIO/VSLAM 소프트웨어를 돌리는 방식이다.\n- VIO용 글로벌 셔터 카메라 선정 — 컴패니언 컴퓨터(Jetson) 기반 VIO 카메라 선정 가이드와 PX4 외부 비전(EV) 융합 설명.\n- Intel RealSense D435i — 스테레오 깊이 + IMU 카메라, 컴패니언 컴퓨터 필요.\n- Luxonis OAK-D Pro W — 스테레오·IMU 내장 카메라.\n- Arducam OV9281 B0223 — 글로벌 셔터 단안 카메라 모듈.\n- Raspberry Pi 5 — 컴패니언 컴퓨터 후보.\n- ModalAI Starling 2 Max — VIO 기반 GPS 불능 항법을 지원하는 완제품 개발용 드론.",
+    "MicoVIO (MicoAir Tech 시각-관성 오도메트리 센서) — 단점·제약\n> [!note] 추정 — 장애물 회피용이 아님\n> 근거: 사양 카드의 센서는 **하향 장착** 카메라·IMU·**하향** ToF이고 출력은 위치·속도·자세다. [^1] 전방·측방 거리 측정이나 장애물 감지 기능은 영상에 언급이 없으므로, 이 모듈만으로는 장애물 회피를 할 수 없을 것으로 추정한다. 제조사가 명시한 내용은 아니다.\n\n> [!note] 추정 — GPS 재밍·기만 환경 대응 활용 가능성\n> 근거: 제조사는 \"GPS-free visual positioning\"이라고만 표기했다. [^1] GPS 신호가 없거나 믿을 수 없는 환경(재밍·기만 포함)에서 위치 추정 대안이 될 수 있다는 해석은 이 문구에서 추론한 것이며, 재밍·기만 환경 시험이나 해당 용도에 대한 제조사 언급은 영상에 없다. 또한 영상 시연은 실내 비행만 보여 준다. [^1]",
+    "RealSense D435i — 장점\n- 깊이 센서가 글로벌 셔터이고 스테레오 방식이다. [^1]\n- 6DoF IMU가 내장되어 스테레오 + IMU 입력을 한 장치에서 얻는다. [^1] Isaac ROS Visual SLAM은 스테레오 + IMU 입력용으로 설계되었다. [^3]\n- Jetson Orin Nano Devkit + Isaac ROS VSLAM 공개 사용자 사례와 구체적인 튜닝 파라미터가 있다. [^2]\n- 1/4-20 UNC·M3 장착 나사, 90 × 25 × 25 mm 크기. [^1]",
+    "PX4 + MAVROS 외부 VIO(non-GPS) 연동 실무 — 동작 원리 — 데이터 흐름\n1. **카메라 → VIO 노드**: 컴패니언 컴퓨터의 ROS 노드가 카메라(예: Intel RealSense T265)와 통신해 오도메트리를 계산한다.[^1]\n2. **VIO 노드 → MAVROS**: 노드는 `nav_msgs/Odometry`를 `/mavros/odometry/out`으로, `mavros_msgs/CompanionProcessStatus`를 `/mavros/companion_process/status`로 발행한다.[^1]\n3. **MAVROS → PX4**: MAVROS가 MAVLink로 PX4에 전달하고, PX4 EKF2가 외부 비전(External Vision) 측정으로 융합한다.[^1]\n4. **점검 경로**: PX4가 받은 값을 `MAV_ODOM_LP`로 다시 `ODOMETRY` MAVLink 메시지로 내보내게 해서 QGroundControl MAVLink Inspector로 확인한다.[^1]",
+    "VIO용 글로벌 셔터 카메라 선정 (Jetson Orin Nano 기준) — 드론 적용 시 고려사항\n> [!note] 추정 — 카메라 지연과 EKF2_EV_DELAY의 관계\n> Luxonis 표의 지연(예: 모노 400P 7.5 ms)은 장치 타임스탬프 기준 전송 지연이므로 [^4], VIO 노드가 장치 타임스탬프를 그대로 Odometry 메시지 시각으로 쓰고 FC와 시간 동기가 되어 있다면 전송 지연 자체는 `EKF2_EV_DELAY`에 크게 반영되지 않아야 한다. 반대로 수신 시각으로 타임스탬프를 찍으면 전송 지연 + VIO 처리 시간이 `EKF2_EV_DELAY`로 보정돼야 할 것이다. PX4 문서의 \"correct timestamping (not just arrival time)\" 설명 [^1]에 근거한 추론이며, 실측 값은 로그로 확인해야 한다.",
+    "VIO용 글로벌 셔터 카메라 선정 (Jetson Orin Nano 기준) — 성능·한계\n- PoE 지연은 네트워크 상태, 대역폭 포화, CPU 사용률, NIC 설정에 따라 달라진다. 직접 연결 시 하향 약 797 Mbps, 상향 264 Mbps였다. [^4]\n- 인코딩 프레임의 호스트 도달 시간: MJPEG 4K@30 71 ms, H.265 1080P@60 42 ms, MJPEG 1080P@60 31 ms. [^4]\n- 같은 USB에서도 **모노 400P(7.5 ms)가 모노 720P/800P(24.5 ms)보다 약 3배 짧다.** [^4]\n\n> [!note] 추정 — 해상도와 지연\n> 원문 표에는 원인 설명이 없다. 해상도가 낮을수록 프레임당 데이터량이 줄어 전송·처리 시간이 짧아진 것으로 보이지만, 이는 수치 비교에 근거한 해석이다."
+   ],
+   "ctx_docs": [
+    "03_sensor/micoair-micovio",
+    "03_sensor/micoair-micovio",
+    "03_sensor/eo_ir/intel-realsense-d435i",
+    "04_ai_detection_tracking/sensor_fusion/px4-vio-mavros-setup",
+    "03_sensor/eo_ir/vio-global-shutter-camera-selection",
+    "03_sensor/eo_ir/vio-global-shutter-camera-selection"
+   ],
+   "gold_docs": [
+    "03_sensor/micoair-micovio"
+   ],
+   "rounds": 1,
+   "sec": 4.1
+  },
+  {
+   "id": 12,
+   "kind": "단일 문서",
+   "question": "Orin NX 16GB 모델의 AI 성능과 전력 모드 사양은 어떻게 되나요?",
+   "reference": "Orin NX 16GB의 AI 성능은 157 Sparse INT8 TOPS이며, 전력 모드는 10 / 15 / 25 / 40W입니다.",
+   "answer": "등록된 자료에서 Orin NX 16GB 모델의 AI 성능과 전력 모드 사양에 대한 근거를 찾지 못했습니다. [1] 자료에는 Orin Nano의 4GB/8GB 모델 성능 및 상위 Orin NX가 69.6×45mm 폼팩터를 공유한다는 내용만 포함되어 있습니다. [1]",
+   "contexts": [
+    "NVIDIA Jetson Orin Nano (4GB / 8GB / Super Developer Kit) — 장점\n- 8GB(Super) 기준 67 TOPS로, 이 위키에서 비교한 컴패니언 후보 중 공칭 AI 성능이 가장 높다(VOXL 2 15 TOPS, Raspberry Pi 5는 NPU 사양 없음). [^1] [^5] [^6]\n- 4GB/8GB 모듈이 같은 69.6×45mm 폼팩터를 공유하고, 상위 Orin NX도 같은 크기다. [^1]\n- 7W부터 25W까지 전력 모드를 선택할 수 있다. [^1]\n- 기존 Orin Nano Developer Kit도 소프트웨어 업데이트로 Super 성능(67 TOPS, 102GB/s, 1.7GHz)을 쓸 수 있다. [^2]\n- CSI 카메라 최대 4대(가상 채널 8대), PCIe Gen3 1 x4 + 3 x1. [^1]\n- USB 케이블 하나로 고정 IP(192.168.55.1) SSH 접속이 가능하고, VS Code/Cursor Remote-SSH로 원격 개발할 수 있다(Jetson 일반 가이드). [^10]\n- ROS 2 Humble + TensorRT YOLO + ArduPilot(MAVROS) 조합의 공개 대회용 탑재 사례가 있다. [^11]",
+    "NVIDIA Jetson Orin Nano (4GB / 8GB / Super Developer Kit) — 단점·제약\n- 비행제어기가 없어 별도 FC가 필요하다(PX4 가이드의 컴패니언 구조). FC 일체형인 VOXL 2와 다르다. [^4] [^5]\n- 4GB 모듈은 8GB 대비 AI 성능(34 vs 67 TOPS)·메모리 대역폭(51 vs 102GB/s)이 절반 수준이고 SD 카드 슬롯이 없다. [^1]\n- 최대 전력 모드가 25W로, VOXL 2의 0.1~7W보다 높다(전력 모드 정의는 제조사별로 다름). [^1] [^7]\n- 무게·가격·개발자 키트 I/O는 수집된 원문에 자료 없음.",
+    "ModalAI VOXL 2 (AI 컴패니언 컴퓨터 + 비행제어기 일체형) — 장점\n- 컴패니언 컴퓨터와 비행제어기를 16g, 70×36mm 단일 보드에 통합했다. [^1]\n- 15 TOPS NPU, Adreno 650 GPU, 8코어 CPU, 8GB LPDDR5를 갖춘다. [^1]\n- MIPI 이미지 센서 6개 동시 입력과 8K30 인코딩을 지원한다. [^1]\n- 소비 전력 범위가 0.1~7W로 명시돼 있다. [^2]\n- PX4·ArduPilot 선택 가능, 순정 PX4 지원(PX4 가이드), ROS 1 & 2, QGroundControl 호환. [^1] [^2] [^4]\n- NDAA Section 848 준수·미국 조립, Blue UAS Framework 제품이다. [^1]\n- 제조사가 맞춤 YOLOv8 학습 → TFLite 변환 → voxl-tflite-server 배치 튜토리얼(Docker)을 공개 저장소로 제공한다. [^9]",
+    "VIO용 글로벌 셔터 카메라 선정 (Jetson Orin Nano 기준) — 성능·한계\n- PoE 지연은 네트워크 상태, 대역폭 포화, CPU 사용률, NIC 설정에 따라 달라진다. 직접 연결 시 하향 약 797 Mbps, 상향 264 Mbps였다. [^4]\n- 인코딩 프레임의 호스트 도달 시간: MJPEG 4K@30 71 ms, H.265 1080P@60 42 ms, MJPEG 1080P@60 31 ms. [^4]\n- 같은 USB에서도 **모노 400P(7.5 ms)가 모노 720P/800P(24.5 ms)보다 약 3배 짧다.** [^4]\n\n> [!note] 추정 — 해상도와 지연\n> 원문 표에는 원인 설명이 없다. 해상도가 낮을수록 프레임당 데이터량이 줄어 전송·처리 시간이 짧아진 것으로 보이지만, 이는 수치 비교에 근거한 해석이다.",
+    "VIO용 글로벌 셔터 카메라 선정 (Jetson Orin Nano 기준) — 성능·한계\n> [!note] 추정 — 사례에서 얻는 시사점\n> 경고의 22 ms 임계값은 30 Hz 프레임 주기(약 33.3 ms)보다 짧아, 해당 설정에서는 더 높은 프레임레이트를 기대한 것으로 보인다. 해결책에서 프레임레이트를 30 Hz로 **낮춘** 것은 Orin Nano의 처리 여유를 확보해 지터를 줄이려는 조치로 해석된다. 포럼 글에는 JetPack·Isaac ROS 버전이 없어 일반화하기 어렵다. 근거: [^2]의 30 Hz·±2 ms 요구사항, [^3]의 로그."
+   ],
+   "ctx_docs": [
+    "04_ai_detection_tracking/edge_ai/nvidia-jetson-orin-nano",
+    "04_ai_detection_tracking/edge_ai/nvidia-jetson-orin-nano",
+    "04_ai_detection_tracking/edge_ai/modalai-voxl-2",
+    "03_sensor/eo_ir/vio-global-shutter-camera-selection",
+    "03_sensor/eo_ir/vio-global-shutter-camera-selection"
+   ],
+   "gold_docs": [
+    "04_ai_detection_tracking/edge_ai/nvidia-jetson-orin-nano"
+   ],
+   "rounds": 1,
+   "sec": 4.3
+  },
+  {
+   "id": 13,
+   "kind": "단일 문서",
+   "question": "어떤 기준을 넘는 무인동력비행장치가 안전성인증을 받아야 하나요?",
+   "reference": "무인동력비행장치는 최대이륙중량이 25kg을 초과하는 경우 안전성인증 대상에 해당합니다.",
+   "answer": "최대이륙중량 25kg을 초과하는 무인동력비행장치가 안전성인증 대상입니다 [2].\n\n해당 기체는 비행안전 기술기준 적합 안전성인증을 받지 않으면 비행할 수 없으며, 인증 시 추가적인 시험, 계산 또는 입증자료를 요구받을 수 있습니다 [2, 3].",
+   "contexts": [
+    "초경량비행장치 조종자 전문교육기관 지정기준 — 관련 제품·기술\n- 무인멀티콥터 조종자 증명 (1~4종)\n- 무인동력비행장치 안전성인증·신고 의무 — 훈련용 기체의 신고·인증 대상 여부.",
+    "무인동력비행장치 안전성인증·신고 의무 — 요약\n- **안전성인증**: 국토교통부령으로 정하는 초경량비행장치는 시험비행 등으로 허가받은 경우를 제외하고, 지정 기관·단체로부터 비행안전 기술기준 적합 안전성인증을 받지 않으면 비행할 수 없다. [^1] 무인동력비행장치 중에서는 **최대이륙중량 25kg 초과**가 대상이다. [^2]\n- **신고 면제**: 무인동력비행장치 중 **최대이륙중량 2kg 이하**인 것은 항공기대여업·항공레저스포츠사업·초경량비행장치사용사업에 사용되지 않는 경우 신고를 필요로 하지 않는다. [^3]\n- **제재**: 안전성인증 없는 기체를 **조종자 증명도 없이** 비행하면 1년 이하 징역 또는 1천만원 이하 벌금(제161조②1호). [^5] 안전성인증만 받지 않고 비행하면 500만원 이하 과태료(제166조①10호, 제161조②1호가 적용되는 경우 제외). [^6]\n- **유효기간·절차**: 인증 유효기간은 발급일로부터 2년이며, 세부 절차는 항공안전기술원 운영세칙이 정한다. [^8] → kiast safety certification procedure",
+    "초경량비행장치 기술기준 — 무인동력비행장치 기술요건 — 드론 적용 시 고려사항\n**원문에 근거한 사실**\n- 안전성인증 대상(MTOW 25kg 초과 무인동력비행장치)은 이 기준 별표 6 Part 1을 충족해야 하며, 인증 시 추가 시험·계산·입증자료를 요구받을 수 있다. [^2] [^7] (대상 경계: unmanned aircraft safety certification registration)\n- **페일세이프 설계가 명시적 요구사항이다.** C2 링크 상실 시 사전 결정된 절차를 자동·즉시 실행해야 하고, 그 절차는 비행매뉴얼에 있어야 한다. [^8]\n- **잔여 에너지 정보·경고** 제공, **운영 한계 초과 예방 수단**, **공간적 한계(비행 경로) 유지** 기능이 요구된다. [^7] [^8]\n- **SW 형상관리**가 요구된다: 비행제어장치·명령장치 SW의 안전 영향 확인과 변경사항 추적·관리. [^8]\n- 명령장치가 여러 대일 때 **한 번에 하나만 제어**하도록 이양 능력을 보장해야 한다. [^8]\n- 무선 기기는 전파법 적합성평가 제품, 수소 동력원은 수소용품 검사 제품을 써야 한다(대상이 아니면 제외). [^9] → drone certification exemption and kc\n- 비행매뉴얼과 정비매뉴얼은 필수 산출물이다. [^9]\n- 제작자는 품질시스템, 안전성 시험절차, 사용자 매뉴얼, 생산 문서 보존, 안전지시·기술회보 발행, 결함 접수 체계를 갖춰야 한다. [^4]\n- 자체 설계·제작 기체나 검증되지 않은 설계 방법으로 개조한 기체는 \"연구·개발 중\"으로 시험비행 허가(1년 이내)를 받아 비행할 수 있다. [^3]",
+    "전파법 적합성평가와 드론법상 안전성인증 특례 — 동작 원리 (규정 구조)\n- 기술기준 별표 6 Part 1 제10절 가목: 무인동력비행장치에 무선 기기가 사용되면 「전파법」 제58조의2에 따라 **적합성평가를 받은 제품**을 사용해야 한다(적합성평가 대상이 아니면 제외). 무인비행선(Part 2)도 같은 요건이 있다. [^5]\n- KIAST 무인동력비행장치 안전성점검표(별지 제21호서식)는 [2]에 **\"송수신기 인가여부\"**(Yes/No)를, [3] 서류 확인 6번에 **\"전파법에 따른 기체(수신기) 및 명령장치(송신기)의 전자파적합성평가 인증\"**을 입증 서류로 둔다. [^6]\n- 운영세칙 제26조(접수창구 단일화): 안전성인증 신청 시 '방송통신기자재등의 적합성평가' 신청서를 기술원에 제출할 수 있고, 기술원은 국립전파연구원으로 송부하며, 적합성평가 결과는 국립전파연구원이 신청인에게 송부한다. [^4] 상세 절차: kiast safety certification procedure\n\n### (b) 드론법 — 안전성인증의 예외 규정",
+    "항공안전기술원(KIAST) 초경량비행장치 안전성인증 절차 — 관련 제품·기술\n- 초경량비행장치 기술기준 (고시 제2024-387호) — 인증 판정의 기준\n- 무인동력비행장치 안전성인증·신고 의무 — 대상, 벌칙·과태료, 수수료 법적 근거\n- 전파법 적합성평가와 드론법상 인증 특례\n- 무인멀티콥터 조종자 증명 — 시험비행 조종사 자격 관련",
+    "무인동력비행장치 안전성인증·신고 의무 — 동작 원리 (규정 구조)\n- 신고 의무 자체를 규정한 항공안전법 제122조 본문(신고 주체, 신고 기관, 절차)은 수집되지 않아 **자료 없음**."
+   ],
+   "ctx_docs": [
+    "06_regulation_market/regulation_kr/ultralight-pilot-training-institution",
+    "06_regulation_market/regulation_kr/unmanned-aircraft-safety-certification-registration",
+    "06_regulation_market/regulation_kr/ultralight-technical-standard",
+    "06_regulation_market/regulation_kr/drone-certification-exemption-and-kc",
+    "06_regulation_market/regulation_kr/kiast-safety-certification-procedure",
+    "06_regulation_market/regulation_kr/unmanned-aircraft-safety-certification-registration"
+   ],
+   "gold_docs": [
+    "06_regulation_market/regulation_kr/unmanned-aircraft-safety-certification-registration"
+   ],
+   "rounds": 1,
+   "sec": 4.8
+  },
+  {
+   "id": 14,
+   "kind": "단일 문서",
+   "question": "드론 군집의 충돌회피 기술을 분류할 때 어떤 요소들이 포함되나요?",
+   "reference": "Rezaee 등의 2024년 분류 체계에 따르면 장애물 탐지·회피, 충돌회피 알고리즘, 드론 군집, 경로 최적화가 포함됩니다.",
+   "answer": "UAV(무인 항공기) 충돌회피 기법은 총 4개 그룹으로 분류됩니다 [1].\n\n포함되는 요소는 다음과 같습니다:\n*   장애물 탐지·회피 [1]\n*   충돌회피 알고리즘 [1]\n*   드론 군집 [1]\n*   경로 최적화 [1]",
+   "contexts": [
+    "드론 군집 충돌회피 개요 — 분류와 과제 — 요약\n드론이 여러 산업에 확산되면서 정적·이동 장애물과의 충돌, 다른 드론과의 조우가 운용 안전·보안의 핵심 문제가 되었고, 드론 자체의 **에너지 소비·데이터 저장 용량·처리 능력 제약**이 충돌회피 알고리즘 개발을 어렵게 만든다.[^1] Rezaee 등(2024)의 리뷰는 UAV 충돌회피 기법을 **4개 그룹** — 장애물 탐지·회피, 충돌회피 알고리즘, 드론 군집, 경로 최적화 — 으로 분류한다.[^1] 군집 내부의 분산 회피 사례로 Marek 등(2025)은 **반발 벡터(repulsion vector)** 기반의 단순·저연산 메커니즘을 제안했다.[^2]",
+    "드론 군집 충돌회피 개요 — 분류와 과제 — 동작 원리\n### 반발 벡터 기반 분산 충돌회피 (Marek 등 2025)\n- 대규모 군집과 동적 환경을 겨냥한 메커니즘이다.[^2]\n- **분산 통신**으로 드론들이 자기 위치와 계획 궤적을 공유하고, 이를 바탕으로 충돌을 예측·회피한다.[^2]\n- **반발 벡터** 개념에 기반하며, 회피 반응의 크기는 장애물(다른 드론 포함)의 **보호 구(protective sphere)에 얼마나 깊이 들어갔는지**로 정해진다.[^2]\n- 장점으로 **단순성과 낮은 계산 복잡도**를 들며, 작고 저렴한 드론에도 쓸 수 있다고 밝힌다.[^2]",
+    "드론 자율 내비게이션 연구 동향 (논문 6편) — 성능·한계\n| 연구 | 연도 | 핵심 접근 | 연산 배치 | 검증 | 출처 |\n|---|---|---|---|---|---|\n| CoDrone | 2025 | 흑백 영상 항법 + 엣지 깊이 추정 + 클라우드 VLM, DRL 스케줄러 | 단말·엣지·클라우드 협업 | 실험(세부 자료 없음) | [^1] |\n| FM-Planner | 2025 | LLM·VLM 경로 계획 벤치마크, LLM-Vision 플래너 | 자료 없음 | 시뮬레이션 + 실비행 | [^2] |\n| 문맥 LLM 항법 | 2025 | 자연어 문맥으로 지도 파라미터·명령 조정 | 6G 엣지-클라우드 배치 평가 | 자료 없음 | [^3] |\n| Learning by Cheating | 2021 | 단순 환경 학습 정책을 복잡 환경에 재사용(RL) | 자료 없음 | 자료 없음 | [^4] |\n| 다중 스테레오 | 2021 | 다중 스테레오 카메라 + NBV 탐사 | 자료 없음 | 탐사·매핑 시나리오 | [^5] |\n| DCNN | 2019 | CNN + 회귀기, GPS 없는 경로 추종 | 자료 없음 | AirSim 시뮬레이션 | [^6] |",
+    "Swarm Drone Challenge 2026 — 관련 제품·기술·회사\n- MARL 기반 UAV 제어 — 학습 기반 군집 제어\n- 다목적 군집 임무 계획 — 과업 할당\n- 드론 군집 충돌회피 개요\n- 군집 로보틱스 개요와 생물 영감\n- 군집 ISAC 배치 최적화와 COTS 드론 편대(AirSwarm) — 저가 기체 실내 군집 실험 사례\n- MBDA Germany, brigkAIR — 위키 회사 문서 없음 (회사 문서 추가 후보)\n- 07 군집 개요",
+    "군집 로보틱스 개요와 생물 영감 — 관련 제품·기술\n- 다목적 군집 임무 계획 (MOEA) — 과업 할당\n- UAV 편대 궤적 계획 알고리즘 — 궤적 생성\n- 군집 협력 감지·탐사 — 분산 센싱\n- UAV 군집 편대 제어 기법 종합 — 편대 제어\n- 드론 군집 충돌회피 개요 — 충돌회피\n- 군집 통신 제약·합의·분산 의사결정\n- MARL 기반 UAV 제어\n- 인간-군집 상호작용\n- 군집 보안 — 블록체인·연합학습\n- 군집 ISAC 배치 최적화와 COTS 드론 편대(AirSwarm)\n- Aerostack2 — ROS 2 기반 다중 항공 로봇 프레임워크\n- ROS2swarm — ROS 2 군집 행동 라이브러리(유지보수 종료)\n- 07 군집 개요",
+    "Swarm Drone Challenge 2026 — 기술·제품 관점 (드론 엔지니어에게 의미)\n- **게임 원리**: 두 팀이 드론 케이지 안에서 자율 드론 군집으로 경쟁하며, 목표는 **전략적 군집 협조, 지능형 알고리즘, 전술적 우위**로 깃발을 확보하는 것이다.[^1]\n- **요구 역량(홈페이지 서술 기준)**: 드론 기술과 머신러닝을 함께 다루는 대회로 소개된다.[^1]\n- 필요 장비, 기체 규격, 지원 플랫폼(시뮬레이터·통신 방식)은 **자료 없음**(FAQ 답변 미추출).[^1]\n\n> [!note] 추정 — 관련 위키 주제\n> 홈페이지가 \"전략적 군집 협조, 지능형 알고리즘\"을 핵심으로 들고 있으므로,[^1] 군집 임무 할당·MARL·실내 충돌회피 문서가 준비에 참고가 될 수 있다. 실제 대회 규칙이 어떤 알고리즘을 허용·요구하는지는 규칙 저장소 확인 전까지 알 수 없다."
+   ],
+   "ctx_docs": [
+    "07_swarm/collision_avoidance/swarm-collision-avoidance-overview",
+    "07_swarm/collision_avoidance/swarm-collision-avoidance-overview",
+    "01_software/autonomous-navigation-research",
+    "07_swarm/swarm-drone-challenge-2026",
+    "07_swarm/algorithms/swarm-robotics-overview",
+    "07_swarm/swarm-drone-challenge-2026"
+   ],
+   "gold_docs": [
+    "07_swarm/collision_avoidance/swarm-collision-avoidance-overview"
+   ],
+   "rounds": 1,
+   "sec": 4.7
+  },
+  {
+   "id": 15,
+   "kind": "단일 문서",
+   "question": "Upgrade Energy Gold V1 6s2p 모델의 에너지 밀도가 어떻게 되나요?",
+   "reference": "GOLD V1 6S2P 22.2Ah 모델의 에너지 밀도는 335Wh/kg입니다.",
+   "answer": "Upgrade Energy GOLD V1 6S2P 22.2Ah 모델의 팩 단위 에너지 밀도는 335Wh/kg입니다 [2]. 해당 수치는 제조사 표기 기준이며, 무게와 에너지를 통해 교차 확인 시에도 일치합니다 [1, 2].",
+   "contexts": [
+    "Upgrade Energy GOLD V1 6S2P 22.2Ah (Amprius SA08) — 주요 사양\n> [!note] 추정 — 계산값 (원문 수치로 산출, 원문에 없는 값)\n> - 팩 에너지 밀도 교차 확인: 453Wh ÷ 1.35kg ≈ **335.6Wh/kg** — 제조사 표기 335Wh/kg와 일치.\n> - 암묵적 평균 전압: 453Wh ÷ 22.2Ah ≈ **20.4V** (셀당 약 3.4V). 원문에 공칭 전압이 없어 참고용으로만 쓴다.\n> - 지속 방전 전류 환산: 757W ÷ 20.4V ≈ **37A** (약 1.7C). 전압이 방전 중 변하므로 근사값이다.\n> - 충전 전류 12A ≈ **0.54C** (12 ÷ 22.2).\n> - 셀 화학: 원문 제품 페이지는 셀 모델명(Amprius SA08)만 표기한다. \"실리콘 음극 Li-ion\"이라는 정보는 수집자 메모에만 있어 원문 근거로 보지 않는다.",
+    "Upgrade Energy GOLD V1 6S2P 22.2Ah (Amprius SA08) — 장점\n- 팩 단위 에너지 밀도 335Wh/kg(제조사 표기, 무게·에너지로 교차 확인 시 일치). [^1]\n- 4S~12S, 1P~4P로 제품군이 넓어 같은 셀로 전압·용량을 선택할 수 있다. [^4]\n- 전 제품을 엄격히 시험한다고 설명한다. [^1]",
+    "Upgrade Energy — 주요 제품\n- upgrade energy gold v1 6s2p 22ah — GOLD V1 6S2P 22.2Ah, 453Wh, 335Wh/kg [^1]\n- 같은 제품군(위키 문서 없음): GOLD V1 4S1P 11.1Ah, 6S1P 11.1Ah, 6S3P 33.3Ah, 6S4P 44.4Ah, 8S2P 22.2Ah, 12S1P 11.1Ah, 12S3P 33.3Ah Long [^2]",
+    "Upgrade Energy — 개요\n> [!quote] 원문(English): [GOLD V1 6S2P 22.2Ah AMPRIUS SA08 Drone Battery](https://www.upgradeenergytech.com/products/gold-v1-6s2p-22ah-amprius-sa08)\n> 이 문서는 영문 원문을 근거로 한국어로 정리한 것입니다.",
+    "Tattu 반고체 6S 17000mAh 고에너지 배터리 (TARB1117K0605X) — 주요 사양\n> [!warning] 원문 내 수치 확인 필요 — 에너지 밀도\n> 제품 페이지는 에너지 밀도를 **300Wh/kg**로 표기하지만, 같은 페이지의 에너지(377.4Wh)와 순중량(1444g)으로 계산하면 약 **261Wh/kg**이다(계산식은 아래 추정 콜아웃). 표기값이 셀 단위 기준일 가능성 등이 있으나 원문에 설명이 없다. [^1]\n\n> [!note] 추정 — 계산값\n> - 팩 에너지 밀도: 377.4Wh ÷ 1.444kg ≈ **261.4Wh/kg**\n> - 에너지 교차 확인: 17Ah × 22.2V = 377.4Wh — 원문 값과 일치.\n> - 작동 전압 범위(4.2V~2.75V)는 셀당 값으로 보인다(6S 팩 기준 25.2V~16.5V). 원문에 셀당/팩당 명시 없음.",
+    "Tattu G-Tech 6S 17000mAh 22.8V 15C LiPo 배터리 — 주요 사양\n> [!warning] 출처 간 수치 확인 필요 — 에너지 밀도\n> 제품 페이지는 에너지 밀도를 \"약 240Wh/kg\"로 표기한다. [^1] 그러나 6S 시리즈 표의 동일 사양 모델(TAA17K6S15XT9: 17000mAh, 22.8V, 15C, 1857g, 192×77×60mm)의 에너지 387.6Wh를 같은 무게로 나누면 약 209Wh/kg이다. [^2] 계산식은 아래 추정 콜아웃 참고. 제조사 표기 기준(셀 단위 vs 팩 단위 등)이 다를 수 있으므로 원문 확인 필요."
+   ],
+   "ctx_docs": [
+    "02_hardware/battery_power/upgrade-energy-gold-v1-6s2p-22ah",
+    "02_hardware/battery_power/upgrade-energy-gold-v1-6s2p-22ah",
+    "companies/upgrade-energy",
+    "companies/upgrade-energy",
+    "02_hardware/battery_power/tattu-semi-solid-state-6s-17000mah",
+    "02_hardware/battery_power/tattu-g-tech-6s-17000mah-22-8v-15c"
+   ],
+   "gold_docs": [
+    "companies/upgrade-energy"
+   ],
+   "rounds": 1,
+   "sec": 3.9
+  },
+  {
+   "id": 16,
+   "kind": "단일 문서",
+   "question": "PX4 v1.18 버전의 uXRCE-DDS에서 DDS 버전 선택 시 어떤 것들이 지원되나요?",
+   "reference": "DDS v3, ROS 2 Lyrical Luth 그리고 Rolling Ridley를 지원합니다.",
+   "answer": "PX4 v1.18 버전의 uXRCE-DDS에서는 DDS v3, ROS 2 Lyrical Luth, 그리고 Rolling Ridley를 지원합니다 [1].",
+   "contexts": [
+    "PX4 v1.18 (개발 중 — 베타·RC 단계) — 주요 변경 사항\n### ROS 2\n- 외부 모드(External modes)가 PX4와 setpoint 타입을 협상할 수 있다 — 모드가 `SetpointConfig`를 발행한다.[^1]\n\n### uXRCE-DDS\n- DDS 버전 선택: \"Added support for DDS v3, ROS 2 Lyrical Luth and Rolling Ridley\".[^1]\n- 토픽 브리징에 토픽별 drain·무제한 속도 옵션이 생겨, 토픽을 갱신되는 만큼 빠르게 발행할 수 있다.[^1]\n- `vehicle_attitude`·`vehicle_odometry` 발행에 속도 제한기(rate limiter) 추가.[^1]\n- 다중 인스턴스 발행: `dds_topics.yaml`의 `publications`에 `instance` 필드 추가.[^1]\n- 시리얼 통신의 하드웨어 흐름 제어 지원.[^1]\n- ROS 2 구독을 서로 다른 uORB 토픽 인스턴스로 분배(demux)할 수 있다.[^1]",
+    "PX4 v1.18 (개발 중 — 베타·RC 단계) — 장점\n- ROS 2 Lyrical Luth·Rolling Ridley를 uXRCE-DDS로 지원해 최신 ROS 2 배포판과 맞출 수 있다.[^1]\n- uXRCE-DDS 토픽 브리징 옵션(무제한 속도, 다중 인스턴스, 하드웨어 흐름 제어)이 늘었다.[^1]\n- EKF2 융합 소스를 런타임에 전환할 수 있고, 센서별 융합 상태를 MAVLink로 볼 수 있다.[^1]\n- MAVLink 서명이 규격에 맞게 동작한다.[^1]\n- X-Plane·RotorPy SITL과 GPS·대기속도 고장 주입, ESC 텔레메트리 시뮬레이션으로 시험 범위가 넓어졌다.[^1]",
+    "PX4 ROS 2 Interface Library (px4-ros2-interface-lib) — 연동 구성요소 — Micro XRCE-DDS Client·Agent\nPX4의 uXRCE-DDS 클라이언트는 eProsima Micro XRCE-DDS 라이브러리에 기반한다(raw 수집 메모).[^2] 전체 연동 절차는 PX4–ROS 2 연동 참고.",
+    "PX4 ROS 2 Interface Library (px4-ros2-interface-lib) — 호환성\n- PX4–ROS 2 연동 — uXRCE-DDS 미들웨어·px4_msgs\n- PX4 v1.17 / PX4 v1.18 — PX4와 px4_msgs 메시지 정의를 맞춰야 한다(같은 `main`, 대응 릴리스 브랜치, 또는 메시지 변환 노드). 원문의 릴리스 브랜치 예시는 `release/1.16`이며, 1.17·1.18 브랜치 지원 여부는 원문에 명시 없음(자료 없음).[^1]\n- Micro XRCE-DDS Client ≥ v3.0.0 ↔ Agent ≥ v3.0.0[^2][^3]",
+    "PX4–ROS 2 연동 — 요약\nPX4는 미들웨어를 통해 ROS 2 애플리케이션과 PX4 내부 메시지 체계(uORB)를 연결한다.[^1] 권장 방식은 **uXRCE-DDS**(PX4에서 클라이언트, 컴패니언 컴퓨터에서 에이전트 실행)이며, **Zenoh**는 실험적 대안이다.[^1] ROS 2 쪽은 `px4_msgs` 메시지 정의를 써야 하고, PX4 펌웨어 버전과 맞아야 한다.[^1] PX4 v1.17에서는 고정익·로버용 ROS 2 상위 제어 인터페이스가 추가되고 Zenoh가 rmw_zenoh 호환 수준으로 성숙했다.[^3]",
+    "PX4 v1.17 — 대안·비교\n- ArduPilot 4.7 — 또 다른 오픈소스 오토파일럿 안정 릴리스. 두 릴리스를 직접 비교한 원문은 자료 없음.\n- PX4 v1.16 — 이전 버전 (위키 문서 없음)\n- PX4 v1.18 — 다음 버전(2026-10-13 기준 베타·RC 단계, 개발 중)"
+   ],
+   "ctx_docs": [
+    "01_software/px4/px4-v1-18",
+    "01_software/px4/px4-v1-18",
+    "01_software/ros2/px4-ros2-interface-lib",
+    "01_software/ros2/px4-ros2-interface-lib",
+    "01_software/ros2/px4-ros2-integration",
+    "01_software/px4/px4-v1-17"
+   ],
+   "gold_docs": [
+    "01_software/px4/px4-v1-18"
+   ],
+   "rounds": 1,
+   "sec": 3.2
+  },
+  {
+   "id": 17,
+   "kind": "단일 문서",
+   "question": "Q250-V3 Opti 모델은 GPS 신호가 잡히지 않는 실내 환경에서 어떻게 비행이 가능한가요?",
+   "reference": "Q250-V3 Opti는 하방 Optical-Flow와 LiDAR를 내장해 GPS가 없는 실내에서도 호버링·자율 주행을 할 수 있습니다.",
+   "answer": "Q250-V3 Opti 모델은 하방 Optical-Flow와 LiDAR를 내장하여 GPS가 없는 실내에서도 호버링 및 자율 주행이 가능합니다 [1, 2]. 구체적으로는 다음과 같은 특징을 가지고 있습니다.\n\n*   **센서 구성**: 하방에 Optical-Flow와 LiDAR가 기본으로 포함되어 있어 GPS 없이도 비행할 수 있는 환경을 제공합니다 [1].\n*   **비행 모드**: 해당 모델은 Position 모드 비행이 가능하도록 세팅되어 출고됩니다 [1].",
+   "contexts": [
+    "QUAD Q250-V3 Opti (쿼드 드론연구소 교육·연구용 드론 키트) — 장점\n- 하방 Optical-Flow·LiDAR가 기본 포함돼 GPS 없는 실내 호버링·자율 주행을 바로 실습할 수 있다.[^2][^3]\n- 프롭 가드 일체형 케이지 풀카본 프레임으로 내구성과 실내 비행 안전을 강조한다.[^3]\n- Jetson·Raspberry Pi용 SD 이미지에 ROS/ROS 2, MAVROS, MAVSDK-Python, RealSense SDK, AI 프레임워크가 미리 설치돼 있어 초기 환경 구성 부담이 적다.[^1][^7]\n- 한국어 사용 가이드(펌웨어·파라미터·조종기·첫 비행·튜닝·로그 분석)와 카페·YouTube·구글 드라이브(펌웨어·파라미터 파일)를 통한 지원이 있다.[^1][^8]\n- Q250 Opti는 Position 모드 비행이 가능하도록 세팅되어 출고된다.[^4]",
+    "QUAD Q250-V3 Opti (쿼드 드론연구소 교육·연구용 드론 키트) — 요약\n쿼드(QUAD) 드론연구소가 판매하는 **250 사이즈 PX4 기반 교육·연구용 쿼드콥터 키트**다. 오픈소스 구성 요소와 문서·라이브러리를 묶은 프로그래밍 가능한 개발 키트로 소개된다.[^1] Q250-V3 Opti는 하방 **Optical-Flow와 LiDAR를 내장**해 GPS가 없는 실내에서도 호버링·자율 주행을 하도록 만든 모델이며,[^2][^3] Jetson·Raspberry Pi 컴패니언 컴퓨터와 RealSense 카메라를 옵션으로 얹어 VIO·ROS 실습을 하는 용도에 맞춰져 있다.[^1][^3] 같은 회사 라인업으로 Q500-V2, Q650-V1, Q950, Star-2(SLAM)가 있다.[^1]",
+    "PX4 + MAVROS 외부 VIO(non-GPS) 연동 실무 — 관련 제품·기술\n- QUAD Q250-V3 Opti — 이 절차의 국내 교육용 키트 사례\n- VIO용 글로벌 셔터 카메라 선택 — 카메라·EKF2 연동 상세\n- MicoAir MicoVIO\n- GNSS 거부 환경 시각 항법\n- PX4–ROS 2 연동, PX4 ROS 2 Interface Library\n- ModalAI Starling 2 — VIO 일체형 개발용 기체 대안",
+    "PX4 + MAVROS 외부 VIO(non-GPS) 연동 실무 — 드론 적용 시 고려사항\n- **T265 단종 여부**: 자료 없음(이번 수집 범위에 Intel 공식 단종 공지 없음). 카메라 선택은 VIO용 글로벌 셔터 카메라 선택 참고.\n- **ROS 2 경로**: ROS 2 기반 PX4 연동은 PX4–ROS 2 연동 참고.",
+    "Arducam OV9281 글로벌 셔터 NoIR 카메라 모듈 (B0223) — 단점·제약\n> [!note] 추정 — 스테레오 VIO에 쓰는 경우\n> B0223 2대를 외부 트리거로 동기화해 스테레오 리그를 만들면 Isaac ROS Visual SLAM 입력 형식에 맞출 수 있을 것으로 보이나, 베이스라인 설계, 스테레오·외부 파라미터 캘리브레이션, IMU 확보와 카메라-IMU 시간 동기를 사용자가 직접 해결해야 한다. 근거: [^1]의 듀얼 동기·외부 트리거, [^2]의 스테레오 + IMU 입력 설명. 실제 구성 사례는 수집되지 않았다.",
+    "위성·항공영상 기반 드론 절대 위치추정 — 관련 제품·기술\n- GNSS 거부 환경 시각 항법 (VIO·열화상 위성 지리위치 추정)\n- UAV-위성 지리위치 데이터셋 비교\n- ALTO 데이터셋\n- PX4 + MAVROS 외부 VIO 연동 실무\n- PX4 외부 위치 입력(EKF2 EV)\n- 센서 융합"
+   ],
+   "ctx_docs": [
+    "02_hardware/airframe/quad-q250",
+    "02_hardware/airframe/quad-q250",
+    "04_ai_detection_tracking/sensor_fusion/px4-vio-mavros-setup",
+    "04_ai_detection_tracking/sensor_fusion/px4-vio-mavros-setup",
+    "03_sensor/eo_ir/arducam-ov9281-b0223",
+    "04_ai_detection_tracking/sensor_fusion/satellite-image-uav-localization"
+   ],
+   "gold_docs": [
+    "02_hardware/airframe/quad-q250"
+   ],
+   "rounds": 1,
+   "sec": 4.6
+  },
+  {
+   "id": 18,
+   "kind": "단일 문서",
+   "question": "VOXL 2를 사용할 때 어떤 미들웨어를 지원하며, 지상국 소프트웨어로는 무엇을 써야 하나요?",
+   "reference": "미들웨어는 ROS 2와 ROS 1을 지원하며, 지상국은 QGroundControl(GCS 허브)을 사용합니다.",
+   "answer": "VOXL 2는 PX4 또는 ArduPilot을 지원하며, 지상국 소프트웨어로 브라우저 기반의 voxl-portal을 사용할 수 있습니다.\n\n세부 사항은 다음과 같습니다.\n\n*   **지원 미들웨어 및 펌웨어**: VOXL 2는 온보드 AI 15 TOPS와 센서 DSP에서 구동되는 PX4 또는 ArduPilot을 지원합니다 [5]. 또한, 순정(vanilla) PX4 펌웨어를 지원하는 관리형 통합 시스템으로 소개됩니다 [3, 4, 5]. 컴패니언 컴퓨터의 일반적인 연결 방식으로는 MAVLink/uXRCE-DDS(시리얼·이더넷)가 있습니다 [4].\n*   **지상국 소프트웨어**: 브라우저를 통해 현장 점검 및 캘리브레이션을 수행하고자 하는 경우 voxl-portal을 사용할 수 있습니다 [2].",
+   "contexts": [
+    "VOXL SDK 1.8 (ModalAI 오픈소스 소프트웨어 스택) — 지원 하드웨어\n- 현행: VOXL 2, VOXL 2 Mini, 이를 기반으로 한 ModalAI 드론(예: Starling 2) — Qualcomm QRB5165.[^1] SDK 1.6~1.8은 QCS6490(M0197)·VRX용으로도 빌드된다.[^2]\n- 레거시: RB5 Flight, Sentinel.[^1]\n\n> [!warning] 출처 간 불일치 — 초대 VOXL(APQ8096) 지원 범위\n> gitlab-profile README 추출본은 초대 VOXL(APQ8096)을 \"SDK 0.9 계열만\" 지원한다고 적는다.[^1] 반면 docs.modalai.com 릴리스 목록은 SDK 1.0~1.3이 VOXL·VOXL Flight(apq8096)용으로도 빌드됐다고 적는다.[^2] 또 voxl-cross 이미지는 2.7부터 VOXL 1을 지원하지 않고, voxl-tflite-server 새 릴리스도 VOXL 1을 지원하지 않는다.[^2][^4] 정확한 마지막 지원 SDK는 원문 대조가 필요하다.",
+    "VOXL SDK 1.8 (ModalAI 오픈소스 소프트웨어 스택) — 추천 상황 / 비추천 상황\n- 추천: VOXL 2·VOXL 2 Mini·QCS6490(M0197) 보드나 Starling 2 계열 기체로 VIO 기반 비행, 온보드 객체 탐지, PX4 오프보드 동작을 바로 시작하려는 개발.[^1][^3][^4]\n- 추천: 여러 프로세스가 같은 카메라·IMU 데이터를 동시에 써야 하는 맞춤 온보드 서비스 개발(MPA + voxl-cross-template).[^2][^5]\n- 추천: 브라우저로 현장 점검·캘리브레이션을 하고 싶은 시험 운용(voxl-portal).[^3]\n- 비추천: VOXL 계열이 아닌 컴패니언 컴퓨터(Jetson·Raspberry Pi 등)용 범용 SDK가 필요한 경우 — SDK 빌드 대상은 VOXL·RB5·VRX·QCS6490 계열뿐이다.[^2]\n- 비추천: 최신 ROS 2 배포판 토픽 직결이 필수인 구성 — 수집 자료상 ROS 2 브리지는 Foxy 노드다.[^3]\n- 비추천: 개별 패키지를 apt로 자주 갈아 끼우는 운용 방식.[^2]\n- 그 밖의 비추천 상황: 자료 없음.",
+    "ModalAI — 개요\nQualcomm QRB5165 기반 AI 컴패니언 컴퓨터 겸 비행제어기 VOXL 2와, 이를 탑재한 NDAA 준수 개발용 드론 Starling 시리즈를 만든다. [^1] [^3] VOXL 2를 \"flagship autonomous Blue UAS Framework AI Autopilot\"으로 소개하며 [^2], 제품을 NDAA Section 848 준수·미국 조립으로 표기한다. [^1] PX4 공식 가이드는 VOXL 2를 Auterion Skynode와 함께 FC·컴패니언 컴퓨터를 결합한 관리형 통합 시스템(순정 PX4 지원)으로 소개한다. [^6] 본사 소재지·설립 연도 등 회사 일반 정보는 수집된 원문에 없다(자료 없음).",
+    "ModalAI Starling 2 (실내 SLAM 개발용 드론) — PX4 연동\n- 오토파일럿 VOXL 2는 PX4 가이드에서 FC와 컴패니언 컴퓨터를 결합한 관리형 통합 시스템으로, 순정(vanilla) PX4 펌웨어를 지원한다고 소개된다. [^5]\n- 컴패니언 컴퓨터 일반 연결 방식(MAVLink/uXRCE-DDS, 시리얼·이더넷)은 VOXL 2 문서 참고. [^5]\n- PX4 가이드는 VOXL 하드웨어·소프트웨어 핵심 기능은 docs.modalai.com과 VOXL Bootcamp를 참고하라고 안내한다. [^3]",
+    "ModalAI VOXL 2 (AI 컴패니언 컴퓨터 + 비행제어기 일체형) — 요약\nModalAI의 VOXL 2는 AI 컴패니언 컴퓨터와 비행제어기를 16g 보드 하나에 합친 제품으로, 원문은 \"자율 드론이나 지상 로봇의 엣지 컴퓨팅과 오토파일럿을 단일 부품으로\" 제공한다고 설명한다. [^1] Qualcomm QRB5165(Qualcomm Flight RB5 5G Platform) 기반이며 [^3], 온보드 AI 15 TOPS와 센서 DSP에서 구동되는 PX4 또는 ArduPilot을 내세운다. [^1] PX4 공식 가이드는 VOXL 2를 비행제어기와 컴패니언 컴퓨터를 결합한 \"관리형 통합 시스템\"으로 분류하고 순정(vanilla) PX4 펌웨어를 지원한다고 소개한다. [^4]\n\n> [!note] 분류 위치\n> VOXL 2는 비행제어기 기능도 갖지만, 이 위키에서는 온보드 AI 추론(컴패니언 컴퓨터) 비교를 위해 `edge_ai`에 둔다. 비행제어기 허브에서 링크로 연결한다."
+   ],
+   "ctx_docs": [
+    "01_software/voxl-sdk",
+    "01_software/voxl-sdk",
+    "companies/modalai",
+    "02_hardware/airframe/modalai-starling-2",
+    "04_ai_detection_tracking/edge_ai/modalai-voxl-2"
+   ],
+   "gold_docs": [
+    "04_ai_detection_tracking/edge_ai/modalai-voxl-2"
+   ],
+   "rounds": 1,
+   "sec": 6.5
+  },
+  {
+   "id": 19,
+   "kind": "관계",
+   "question": "Crazyflie 나노 쿼드콥터에 적용된 Zhao 외의 바이어스 보정 기법을 사용했을 때, Loco Positioning deck의 TDOA 측위 오차는 평균적으로 얼마나 줄어듭니까?",
+   "reference": "Zhao 외의 학습 기반 바이어스 보정과 M-추정 기반 강건 필터를 결합한 기법은 Crazyflie 나노 쿼드콥터 온보드에서 측위 오차를 평균 42.08% 줄였습니다.",
+   "answer": "Crazyflie 나노 쿼드콥터 온보드에서 해당 기법을 사용했을 때, 측위 오차를 평균 42.08% 줄였습니다 [3].",
+   "contexts": [
+    "Bitcraze Loco Positioning deck — 요약\nCrazyflie 2.X 나노드론에 꽂는 DWM1000 기반 UWB 덱으로, Loco Positioning Node 앵커까지의 거리를 재서 실내 위치를 구한다.[^1] 단독으로는 쓸 수 없고 앵커 노드가 필요하다.[^1] 시스템 정확도는 10 cm 범위이며 주로 실내용이다.[^2] Crazyflie 기반 나노드론 군집·측위 연구용이다.",
+    "Bitcraze Loco Positioning deck — 추천 상황 / 비추천 상황\n- 추천: Crazyflie 기반 실내 나노드론 군집 실험(TDoA 2/3로 다수 기체 동시 측위)[^2], UWB 측위 알고리즘 연구.\n- 비추천: 실외·10 m 넘는 거리[^1][^2], Crazyflie가 아닌 기체(폼팩터 전용[^1]), 앵커 설치가 불가능한 현장(앵커 필요[^1] — 앵커리스 방식은 UWB 기반 군집 상대 위치추정 참고).",
+    "UWB NLOS·다중경로 바이어스 대응 — 요약\n상용 UWB 무선기의 TDOA 측위는 **측정 바이어스와 이상치** 때문에 정확도가 부족한 경우가 많다.[^1] Zhao 외는 (1) 학습 기반 바이어스 보정과 (2) M-추정 기반 강건 필터를 결합해 Crazyflie 나노 쿼드콥터 온보드에서 측위 오차를 평균 42.08% 줄였다.[^1] 같은 저자(Wenda Zhao·Angela P. Schoellig)가 참여한 UTIL 데이터셋은 LOS/NLOS 조건별 UWB TDOA 측정 특성과 약 150분 비행 데이터를 공개해 이런 기법을 벤치마크할 수 있게 했다.[^2] 앵커 없는 기체 간 레인징에서도 학습한 평균 바이어스 보정이 위치 오차를 19% 추가로 줄였다.[^3]",
+    "Bitcraze — 개요\n나노드론 Crazyflie 2.X와 그 확장 덱, UWB 기반 Loco Positioning System을 만드는 회사다.[^1][^2] Loco Positioning System은 TWR·TDoA 2·TDoA 3 모드를 제공하고 정확도 10 cm 범위의 실내용 측위 시스템이다.[^2] 국가·설립 연도 등 회사 일반 정보는 자료 없음.",
+    "FANET 라우팅 (클러스터 기반·Q-러닝 기반) — 동작 원리\n### 3. 정찰 이동성 모델별 AODV·DSDV·OLSR 비교 (Kim 외, MDPI Drones 2023)\n- **FANET의 특성**: MANET(이동 애드혹 네트워크)·VANET(차량 애드혹 네트워크)과 달리 FANET은 **밀도가 매우 낮고**, 노드 토폴로지가 빠르고 불규칙하게 바뀐다. 비행 노드의 밀도·이동성·속도와 함께 응용 시나리오·환경 설정도 FANET 성능에 영향을 준다.[^3]\n- **비교 대상**: 대표 FANET 프로토콜 **AODV, DSDV, OLSR**을 이동성 모델 **SRWP, MP, RDPZ, EGM, DPR**에 따라 **다중 UAV 기반 정찰 시나리오**에서 분석했다.[^3] (이동성 모델 약어의 풀이는 초록에 없다 — 자료 없음.)\n- **평가 항목**: 노드 수, 네트워크 연결성, 이동성 모델의 정찰률(reconnaissance rate), 노드 속도, 지상통제소(GCS) 위치.[^3]\n- **주요 관찰**:[^3]\n  - **AODV + SRWP** 조합이 다중 UAV 정찰 시나리오에서 가장 높은 PDR(81%)을 보였다.\n  - 정찰률 기준 이동성 모델은 SRWP 76%로 우수했고, RDPZ 62%, EGM 60%는 적정 수준이었다.\n  - 노드 수가 늘면 **네트워크 연결성은 높아지지만 라우팅 프로토콜 성능은 떨어졌다.**\n  - GCS 위치가 라우팅 프로토콜·이동성 모델 조합의 PDR 성능에 영향을 줬다.",
+    "Bitcraze — 주요 제품\n- Loco Positioning deck — Crazyflie 2.X용 DWM1000 기반 UWB 덱, 3.3 g.[^1]\n- Loco Positioning Node — 앵커 (위키 문서 없음).[^1]\n- Crazyflie 2.X — 나노드론 (위키 문서 없음).[^1]"
+   ],
+   "ctx_docs": [
+    "02_hardware/datalink/bitcraze-loco-positioning-deck",
+    "02_hardware/datalink/bitcraze-loco-positioning-deck",
+    "04_ai_detection_tracking/sensor_fusion/uwb-nlos-bias-mitigation",
+    "companies/bitcraze",
+    "07_swarm/algorithms/fanet-routing",
+    "companies/bitcraze"
+   ],
+   "gold_docs": [
+    "04_ai_detection_tracking/sensor_fusion/uwb-nlos-bias-mitigation",
+    "02_hardware/datalink/bitcraze-loco-positioning-deck"
+   ],
+   "rounds": 1,
+   "sec": 3.3
+  },
+  {
+   "id": 20,
+   "kind": "관계",
+   "question": "T-MOTOR MF1806 폴리머 접이식 프로펠러를 사용하여 헥사콥터를 구성할 때, 권장되는 로터당 호버 추력 범위와 이 제품과 같은 Folding 시리즈에 속하는 다른 프로펠러의 종류는 무엇인가요?",
+   "reference": "T-MOTOR MF1806 폴리머 접이식 프로펠러의 추천 로터당 호버 추력은 1~1.8kg 대역이며, 동일한 Folding 시리즈에는 tmotor fa15 2x5와 tmotor fa24 2x7 9가 있습니다.",
+   "answer": "로터당 권장 추력은 1~1.8kg입니다 [4].\n\n이 제품과 같은 Foldable 시리즈에 속하는 다른 프로펠러의 종류는 다음과 같습니다:\n- T-MOTOR FA24.2×7.9 접이식 카본 프로펠러 [2, 6]\n- T-MOTOR FA15.2×5 접이식 카본 프로펠러 [3]",
+   "contexts": [
+    "T-MOTOR MF1806 폴리머 접이식 프로펠러 — 개요\n> [!quote] 원문(English): [MF1806 Polymer Folding Propeller (MF1806-2PCS/PAIR)](https://store.tmotor.com/goods.php?id=740)\n> 이 문서는 영문 원문을 한국어로 번역·정리한 것입니다.",
+    "T-MOTOR FA24.2×7.9 접이식 카본 프로펠러 — 요약\nT-MOTOR Foldable 시리즈의 24.2×7.9인치 UAV용 접이식 탄소섬유 프로펠러로, 블레이드당 87g, 추력 한계 15kg, 최적 회전수 2300~4500RPM이다. 2개 1쌍 판매. [^1]",
+    "T-MOTOR FA15.2×5 접이식 카본 프로펠러 — 요약\nT-MOTOR Foldable 시리즈의 15.2×5인치 UAV용 접이식 탄소섬유 프로펠러로, 블레이드당 27.5g, 추력 한계 6kg, 최적 회전수 3500~6500RPM이다. 2개 1쌍 판매. [^1]",
+    "T-MOTOR MF1806 폴리머 접이식 프로펠러 — 요약\nT-MOTOR의 18.4×6.6인치 접이식 폴리머+탄소섬유 프로펠러로, 로터당 권장 추력 1~1.8kg(3200~4200RPM), 최대 4kg(8000RPM)이다. 강도와 내구성을 강조하며, 폴리머 프로펠러는 동축 구성에 권장되지 않는다고 명시한다. 2개 1쌍 판매. [^1]",
+    "T-MOTOR FA15.2×5 접이식 카본 프로펠러 — 단점·제약\n- 권장 추력 범위와 권장 모터가 원문에 없어 모터 매칭 근거가 부족하다. [^1]",
+    "T-MOTOR FA24.2×7.9 접이식 카본 프로펠러 — 주요 사양\n| 항목 | 값 | 출처 |\n|---|---|---|\n| 모델 (직경×피치) | 24.2×7.9인치 (614.7×200.7mm) | [^1] |\n| 재질 | CF+Epoxy (탄소섬유+에폭시) | [^1] |\n| 블레이드 1개 무게 | 87g | [^1] |\n| 추력 한계 (Thrust Limitation) | 15kg (15000g) | [^1] |\n| 최적 회전수 | 2300~4500RPM | [^1] |\n| 권장 추력 | 자료 없음 | [^1] |\n| 사용 온도 | -40~65℃ | [^1] |\n| 보관 온도/습도 | -10~50℃ / 85% 미만 | [^1] |\n| 표면 처리 | 유광 | [^1] |\n| 시리즈 | T-MOTOR Foldable | [^1] |\n| 권장 모터 | 자료 없음 (원문에 명시 없음) | [^1] |\n| 가격 | USD 282.90 / 1쌍 (2026-10-04 기준, 공식 스토어) | [^1] |"
+   ],
+   "ctx_docs": [
+    "02_hardware/propulsion/tmotor-mf1806",
+    "02_hardware/propulsion/tmotor-fa24-2x7-9",
+    "02_hardware/propulsion/tmotor-fa15-2x5",
+    "02_hardware/propulsion/tmotor-mf1806",
+    "02_hardware/propulsion/tmotor-fa15-2x5",
+    "02_hardware/propulsion/tmotor-fa24-2x7-9"
+   ],
+   "gold_docs": [
+    "02_hardware/propulsion/tmotor-mf1806",
+    "companies/tmotor"
+   ],
+   "rounds": 1,
+   "sec": 3.9
+  },
+  {
+   "id": 21,
+   "kind": "관계",
+   "question": "Nooploop LinkTrack 노드를 활용하여 ArduPilot Nooploop UWB 비GPS 비컨을 설정할 때, 앵커로 사용할 노드의 수량과 이 시스템의 제조사가 제공하는 일반적인 3D 정확도는 얼마입니까?",
+   "reference": "앵커로 사용할 노드는 총 4개가 필요하며, 제조사의 3D typical 정확도는 30 cm입니다.",
+   "answer": "앵커로 사용할 노드는 4개가 필요하며, 제조사가 제공하는 일반적인(typical) 3D 정확도는 30 cm입니다 [1, 4].\n\n세부 사항은 다음과 같습니다.\n- **앵커 수량**: 이 시스템은 앵커 4개를 고정 설치해야 하는 인프라 방식이며, ArduPilot 구성 시 앵커 4개와 태그 1개를 포함하여 총 5개의 노드가 필요합니다 [1, 4].\n- **3D 정확도**: LinkTrack의 3D 정확도는 일반적인(typical) 기준으로 30 cm입니다 [1, 3, 4].",
+   "contexts": [
+    "ArduPilot Nooploop UWB 비GPS 비컨 설정 — 성능·한계\n| 지표 | 값 | 조건 | 출처 |\n|---|---|---|---|\n| 지상 시험 위치 안정 기준 | 1 m 이내 | 약 1분 후 안정 | [^1] |\n| LinkTrack 2D/3D 정확도 | 10 cm / 30 cm (typical) | 제조사 표기, 이 설정과의 연관 조건은 자료 없음 | [^3] |\n| 비행 중 위치 오차 실측 | 자료 없음 | — | — |\n\n- 앵커 4개 고정 설치가 필요한 **인프라 방식**이다.[^1] 앵커 없는 군집 상대측위는 UWB 기반 군집 상대 위치추정 참고.\n- 다수 기체에 동시에 적용하는 절차는 이 문서에 없다(자료 없음). LinkTrack 제조사는 태그 최대 40(확장 시 200)을 표기한다.[^3]",
+    "ArduPilot Nooploop UWB 비GPS 비컨 설정 — 설정 절차\n- `EK3_BCN_DELAY`의 단위는 원문에 없다(자료 없음).\n- 요(yaw)는 나침반이 필수다(`EK3_SRC1_YAW = 1`). 나침반 간섭이 큰 실내 기체라면 이 구성의 한계가 된다.[^4]\n\n> [!note] 추정 — 펌웨어 버전별 파라미터 이름\n> ArduPilot 4.7에서 `ARMING_CHECK`가 `ARMING_SKIPCHK`로 바뀌었다는 릴리스 노트(Plane 기준)가 있다.[^2] 이 Nooploop 문서가 `ARMING_SKIPCHK`를 쓰는 점으로 보아 4.7 이후 이름 체계로 갱신된 페이지일 가능성이 있다. 4.6 이하 펌웨어에서는 같은 이름의 파라미터가 없을 수 있으니 해당 버전 문서를 확인한다. 4.7 변경 상세는 ArduPilot 4.7.",
+    "Nooploop LinkTrack — 추천 상황 / 비추천 상황\n- 추천: ArduPilot 기체의 실내 비GPS 위치 유지·자동 비행 시험[^2], Omni-swarm 기반 군집 상대 상태추정 연구[^3], 앵커 없는 기체 간 거리 측정(DR 모드)[^1].\n- 비추천: 3D 정확도가 10 cm급이어야 하는 작업(제조사 3D typical 30 cm[^1]). 무게·전력 제약이 극심한 나노드론은 무게 자료가 없어 판단 불가(자료 없음).",
+    "Nooploop LinkTrack — 단점·제약\n- 3D 정확도(30 cm typical)가 2D(10 cm)보다 크게 낮다.[^1]\n- 무게·소비전력이 공개 발췌에 없어 소형 기체 탑재 적합성을 판단할 자료가 없다(자료 없음).\n- ArduPilot 구성은 노드 5개(앵커 4 + 태그 1)와 앵커 설치(삼각대 등)가 필요하다.[^2]\n- FC UART와 호환되지 않으면 Arduino Nano Every로 우회하라고 안내돼 있다.[^2]\n- 가격 정보 없음(자료 없음).",
+    "ArduPilot 4.7 — 주요 신기능\n### 비행 성능 (Copter)\n- 실시간 S-Curve 자세 제어 알고리즘[^2]\n- Auto 모드 원호(circular arc) 경로[^2][^3]\n- Loiter 협조 선회 (기본 활성화)[^2]\n- 오토튠 게인 백오프(gain backoff)로 안정 여유 개선[^2][^3]\n- 다수 모터 구성 지원 확대(최대 모터 수는 위 \"원문 재확인 필요\")[^2][^3]\n- Auto 모드 LAND 명령의 고도 필드로 하강 감속, 이륙 후 Guided 수평 제어 재개, Throw 모드 상승·하강 파라미터 추가, 회수 불가능한 임무 고도에서 지형 페일세이프 동작[^2]",
+    "Qorvo DWM3001C — 추천 상황 / 비추천 상황\n- 추천: UWB 레인징·TDoA 장치를 직접 설계하는 하드웨어 개발(모듈 일체형 구성[^1]).\n- 비추천: 바로 비행에 쓰는 측위 시스템이 필요한 경우 — FC 연동 근거가 있는 Nooploop LinkTrack(ArduPilot 설정 가이드 있음) 같은 완성형 시스템을 검토한다."
+   ],
+   "ctx_docs": [
+    "01_software/ardupilot/ardupilot-nooploop-uwb-beacon",
+    "01_software/ardupilot/ardupilot-nooploop-uwb-beacon",
+    "02_hardware/datalink/nooploop-linktrack",
+    "02_hardware/datalink/nooploop-linktrack",
+    "01_software/ardupilot/ardupilot-4-7",
+    "02_hardware/datalink/qorvo-dwm3001c"
+   ],
+   "gold_docs": [
+    "01_software/ardupilot/ardupilot-nooploop-uwb-beacon",
+    "02_hardware/datalink/nooploop-linktrack"
+   ],
+   "rounds": 1,
+   "sec": 5.1
+  },
+  {
+   "id": 22,
+   "kind": "관계",
+   "question": "ModalAI Starling 2 드론에 사용되는 VOXL 2와 Jetson Orin Nano 8GB (Super)의 CPU 코어 수 및 최대 클럭 속도를 비교하면 어떻게 되나요?",
+   "reference": "VOXL 2의 CPU는 8코어 최대 3.091GHz이며, Jetson Orin Nano 8GB (Super)의 CPU는 6코어 Cortex-A78AE입니다.",
+   "answer": "ModalAI VOXL 2는 8코어 프로세서를 탑재하고 있으며, Jetson Orin Nano Super의 CPU 코어 수와 최대 클럭 속도에 대해서는 등록된 자료에서 근거를 찾지 못했습니다.\n\n세부 비교 내용은 다음과 같습니다.\n\n*   **ModalAI VOXL 2**: Qualcomm QRB5165 프로세서를 사용하며, 8코어 및 최대 3.091GHz의 클럭 속도를 갖습니다 [^5].\n*   **Jetson Orin Nano Super**: CPU 코어 수와 최대 클럭 속도에 대한 정보는 자료에 명시되어 있지 않습니다 [^3].",
+   "contexts": [
+    "ModalAI VOXL 2 (AI 컴패니언 컴퓨터 + 비행제어기 일체형) — 장점\n- 컴패니언 컴퓨터와 비행제어기를 16g, 70×36mm 단일 보드에 통합했다. [^1]\n- 15 TOPS NPU, Adreno 650 GPU, 8코어 CPU, 8GB LPDDR5를 갖춘다. [^1]\n- MIPI 이미지 센서 6개 동시 입력과 8K30 인코딩을 지원한다. [^1]\n- 소비 전력 범위가 0.1~7W로 명시돼 있다. [^2]\n- PX4·ArduPilot 선택 가능, 순정 PX4 지원(PX4 가이드), ROS 1 & 2, QGroundControl 호환. [^1] [^2] [^4]\n- NDAA Section 848 준수·미국 조립, Blue UAS Framework 제품이다. [^1]\n- 제조사가 맞춤 YOLOv8 학습 → TFLite 변환 → voxl-tflite-server 배치 튜토리얼(Docker)을 공개 저장소로 제공한다. [^9]",
+    "ModalAI Starling 2 (실내 SLAM 개발용 드론) — 호환성\n- 오토파일럿·컴퓨터: ModalAI VOXL 2. [^1]\n- 펌웨어: PX4. [^2]\n- 소프트웨어: VOXL SDK. [^3]\n- RC: 915MHz ELRS 또는 2.4GHz Ghost Atto. [^1]",
+    "NVIDIA Jetson Orin Nano (4GB / 8GB / Super Developer Kit) — YOLO26 추론 성능\n- 벤치마크의 \"Orin Nano Super\"가 4GB/8GB 중 어느 구성인지, 전력 모드는 무엇인지 원문 발췌에 미기재. [^8]\n- INT8은 FP16보다 빠르지만(4.57 → 3.80 ms) mAP가 0.4800 → 0.4490으로 떨어진다. [^8] Ultralytics Export 문서는 `train(quantize=8)` 양자화 인식 학습(QAT)이 사후 양자화보다 정확도를 회복한다고 밝힌다. [^9]\n- YOLO26 s 이상 크기의 Orin Nano 실측: 자료 없음. 드론 탑재 활용법과 다른 장치 비교는 YOLO26 문서 참고.",
+    "NVIDIA Jetson Orin Nano (4GB / 8GB / Super Developer Kit) — YOLO26 추론 성능\nUltralytics 공식 Jetson 가이드의 YOLO26 벤치마크다. [^8]\n\n> [!important] 측정 조건\n> 모델 **YOLO26n**, 입력 **640px**, 평가 데이터 **COCO128**, 추론 시간은 **전·후처리 제외**(\"Inference time does not include pre/post-processing.\"). COCO128 mAP는 COCO val 수치와 직접 비교할 수 없다. 측정 주체는 Ultralytics다. [^8]\n\n**Jetson Orin Nano Super — JetPack 6.1, Ultralytics 8.4.33** [^8]",
+    "ModalAI VOXL 2 (AI 컴패니언 컴퓨터 + 비행제어기 일체형) — 주요 사양\n| 항목 | 값 | 출처 |\n|---|---|---|\n| 프로세서 | Qualcomm QRB5165, 8코어 최대 3.091GHz | [^1] [^2] |\n| 메모리 / 저장소 | 8GB LPDDR5 / 128GB Flash | [^1] [^2] |\n| GPU | Adreno 650, 1024 ALU | [^1] [^2] |\n| NPU (AI) | 15 TOPS (정밀도 조건 원문 미명시) | [^1] [^2] |\n| 무게 / 크기 | 16g / 70×36mm | [^1] [^2] |\n| 소비 전력 | 0.1~7W | [^2] |\n| 카메라 입력 | MIPI 이미지 센서 6개 동시 입력 | [^1] |\n| 카메라 구성 (Feature Matrix) | 스테레오 페어 2, 트래킹 1 | [^2] |\n| 영상 인코딩 | 8K30 H.264/H.265, 64MP 정지 영상 | [^1] [^2] |\n| 비행제어기 | PX4 또는 ArduPilot 내장 (센서 DSP에서 구동) | [^1] [^2] |\n| 내장 센서 | IMU TDK ICM-42688-P ×2, 기압계 ICP-10100 ×1 | [^1] [^2] |\n| 운영체제 | Ubuntu 18.04, Linux Kernel v4.19 | [^2] |\n| 내장 Wi-Fi | 없음 | [^2] |\n| 애드온 통신 | Wi-Fi, 5G, 4G/LTE, Microhard (5G는 애드온 모뎀) | [^1] [^2] |\n| ROS 지원 | ROS 1 & 2 | [^2] |\n| 지상국 | QGroundControl 호환 | [^2] |\n| 열화상·ToF 지원 | PMD TOF, FLIR Boson (USB/MIPI), FLIR Lepton (USB/SPI) | [^2] |\n| NDAA | NDAA Section 848 준수, 미국 조립 / Blue UAS Framework | [^1] [^2] |",
+    "ModalAI Starling 2 (실내 SLAM 개발용 드론) — 단점·제약\n- 탑재 중량·최고 속도·내풍 성능이 수집된 원문에 없다(자료 없음). 탑재체 500g이 명시된 것은 Starling 2 Max다. [^4]\n- 중량·비행 시간이 데이터시트와 마케팅 자료에서 다르다(위 경고). [^1] [^2]\n- 현재 판매가는 자료 없음(출시가만 확인). [^2]"
+   ],
+   "ctx_docs": [
+    "04_ai_detection_tracking/edge_ai/modalai-voxl-2",
+    "02_hardware/airframe/modalai-starling-2",
+    "04_ai_detection_tracking/edge_ai/nvidia-jetson-orin-nano",
+    "04_ai_detection_tracking/edge_ai/nvidia-jetson-orin-nano",
+    "04_ai_detection_tracking/edge_ai/modalai-voxl-2",
+    "02_hardware/airframe/modalai-starling-2"
+   ],
+   "gold_docs": [
+    "02_hardware/airframe/modalai-starling-2",
+    "04_ai_detection_tracking/edge_ai/modalai-voxl-2"
+   ],
+   "rounds": 1,
+   "sec": 5.7
+  },
+  {
+   "id": 23,
+   "kind": "관계",
+   "question": "VisDrone 학습 예제에서 쓰는 YOLO 모델 파일 이름과, YOLO26n-obb 모델의 파라미터 수는 각각 얼마인가요?",
+   "reference": "VisDrone 학습 예제는 yolo26n.pt 모델을 사용하며, YOLO26n-obb 모델의 파라미터는 2.4M입니다.",
+   "answer": "등록된 자료에서 질문하신 내용에 대한 근거를 찾지 못했습니다.\n\n- **VisDrone 학습 예제에서의 YOLO 모델 파일 이름**: 관련 정보가 자료에 없습니다. [자료 없음]\n- **YOLO26n-obb 모델의 파라미터 수**: 관련 정보가 자료에 없습니다. [자료 없음]",
+   "contexts": [
+    "Ultralytics YOLO26 — 단점·제약\n- **VisDrone(드론 공중 소형 객체)에서는 이점이 거의 없다**: 독립 연구에서 YOLO26-x 0.224 vs YOLOv8-x 0.214 mAP50:95로 차이가 작고, 두 모델 모두 성능이 크게 낮다. [^16]\n- **GPU 지연은 YOLOv8이 앞선다**: 같은 크기에서 YOLOv8-s 6.92 ms vs YOLO26-s 8.38 ms. 저자들은 \"NMS-free design does not inherently guarantee superiority in universal deployment\"라고 결론지었다. 측정 GPU 모델 등 하드웨어 조건은 초록에 없다. [^16]\n- 공식 기술 보고서에 드론·UAV 전용 평가와 별도 한계 절이 없다. [^3]\n- 엣지 벤치마크·COCO 수치는 대부분 Ultralytics 자체 측정이다. [^1] [^6] [^7]\n- INT8 양자화 시 mAP 하락(Orin Nano Super COCO128 0.4800 → 0.4490). [^6]\n- NMS-free 헤드는 기본 헤드보다 mAP가 0.6~0.8 낮다(COCO). [^1]\n- **AGPL-3.0**: 소스 비공개로 쓰려면 Enterprise License가 필요하고, Enterprise 가격은 공개되지 않았다. [^9]\n- ModalAI VOXL 2에서의 실행 근거가 없다(자료 없음). [^18]",
+    "Ultralytics YOLO26 — 대안·비교\n- YOLOv8 (위키 문서 없음) — 독립 연구 기준 VisDrone 정확도 거의 동등(0.214 vs 0.224, x 크기), GPU 지연은 YOLOv8 우위(s 6.92 vs 8.38 ms), Pascal VOC 정확도·연산량은 YOLO26 우위. [^16]\n- YOLO11 (위키 문서 없음) — Ultralytics는 YOLO26n이 YOLO11n보다 CPU ONNX에서 \"up to 43% faster\"라고 주장(YOLO11n 수치는 수집 원문에 없음). [^1]\n- YOLOv5n (위키 문서 없음) — SDD-YOLO-n이 DroneSOD-30K에서 YOLOv5n보다 mAP@0.5 +7.8%p. [^15]\n- RT-DETR, RF-DETR, DEIM 등 Transformer 계열, YOLOv12·v13 — 독립 논문들이 YOLO26과 비교했다고 밝히나 수치는 수집된 초록에 없다(자료 없음). [^13] [^14]",
+    "Raspberry Pi 5 — YOLO26 추론 성능\n- 형식 선택에 따라 YOLO26n 지연이 67.03 ms(NCNN)~353.20 ms(TorchScript)로 크게 달라진다. [^6]\n- YOLO26s 형식별 표는 페이지에 있으나 수집되지 않았다(자료 없음). [^6]\n- Jetson과의 비교 및 드론 탑재 활용법은 YOLO26 문서 참고.",
+    "VisDrone (VisDrone2019-DET) — 드론 영상 객체 탐지 데이터셋 — 성능·한계\n| 지표 | 값 | 조건 | 출처 |\n|---|---|---|---|\n| YOLO26-x mAP50:95 | 0.224 | VisDrone, 독립 연구(Oguine et al.), 측정 조건 세부는 초록에 없음 | [^2] |\n| YOLOv8-x mAP50:95 | 0.214 | 같은 연구, 같은 조건 | [^2] |\n| Ultralytics 공식 YOLO26 VisDrone 수치 | 자료 없음 | 공식 기술 보고서에 드론·UAV 전용 평가 없음 | [^3] |\n\n- 독립 연구 결론: 두 모델 모두 \"struggle significantly\"하며 성능 차이가 작다. Pascal VOC에서 YOLO26이 보인 우위가 밀집 항공 환경에서는 좁아진다. [^2]\n- 자세한 해석과 엣지 장치 수치는 YOLO26 문서의 \"드론 활용 방법\" 참고.",
+    "YOLO–ROS 2 연동 — 동작 원리\n| 플러그인 | 주요 파라미터 | 기본값 | 출처 |\n|---|---|---|---|\n| 탐지 `detection.*` | `model_type`(파일명으로 자동 추론), `provider`(auto/tensorrt/cuda/cpu) | — | [^2] |\n| | `threshold` 신뢰도 임계값 | 0.7 | [^2] |\n| | `iou` NMS IoU 임계값 | 0.45 | [^2] |\n| 추적 `tracking.*` | `tracker_type` | bytetrack (또는 botsort) | [^2] |\n| | `track_buffer` 잃어버린 트랙 유지 프레임 수 | 30 | [^2] |\n| 3D 탐지 `detection3d.*` | `target_frame`, `enable_orientation` | 자료 없음 | [^2] |\n| 디버그 `debug.*` | `marker_lifetime` | 0.5 s | [^2] |",
+    "VisDrone (VisDrone2019-DET) — 드론 영상 객체 탐지 데이터셋 — 드론 적용 시 고려사항\n- 이미지당 평균 약 70개, 객체 75% 이상이 2,000픽셀 미만이라는 특성상 일반 데이터셋(COCO 등) 정확도가 VisDrone에서 그대로 재현되지 않을 수 있다 — 독립 연구에서 YOLO26의 Pascal VOC 우위가 VisDrone에서 좁아졌다. [^1] [^2]\n- 고해상도 영상의 소형 객체에는 SAHI 슬라이스 추론이 대안으로 제시된다. SAHI 문서는 \"large-scale and high-resolution imagery\"를 대상으로 하며 드론을 직접 언급하지는 않는다. YOLO26+SAHI의 VisDrone 실측은 자료 없음. [^4]\n- VisDrone은 기체에서 지상을 내려다보는 공중→지상 시점이다. 지상에서 드론을 올려다보는 지상→공중(C-UAS) 탐지에는 SDD-YOLO 연구가 별도 데이터셋 DroneSOD-30K(약 30,000장)를 구축해 사용했다. [^5]\n- 데이터셋 라이선스·상업적 이용 가능 여부: 자료 없음 — 사용 전 VisDrone 공식처 확인 필요. [^1]"
+   ],
+   "ctx_docs": [
+    "04_ai_detection_tracking/detection/yolo26",
+    "04_ai_detection_tracking/detection/yolo26",
+    "04_ai_detection_tracking/edge_ai/raspberry-pi-5",
+    "04_ai_detection_tracking/datasets/visdrone",
+    "04_ai_detection_tracking/detection/yolo-ros2-integration",
+    "04_ai_detection_tracking/datasets/visdrone"
+   ],
+   "gold_docs": [
+    "04_ai_detection_tracking/datasets/visdrone",
+    "04_ai_detection_tracking/detection/yolo26"
+   ],
+   "rounds": 1,
+   "sec": 4.6
+  },
+  {
+   "id": 24,
+   "kind": "관계",
+   "question": "ALTO 데이터셋의 촬영 지역과 비행 궤적의 길이는 어떻게 되나요?",
+   "reference": "ALTO 데이터셋은 미국 오하이오·펜실베이니아를 촬영하며, 궤적 약 150 km·260 km 2개로 구성되어 있습니다.",
+   "answer": "ALTO 데이터셋은 미국 오하이오와 펜실베이니아 상공을 촬영하였으며, 약 150 km 및 260 km 길이의 긴 궤적 2개로 구성되어 있습니다 [3].",
+   "contexts": [
+    "위성·항공영상 기반 드론 절대 위치추정 — Bianchi·Barfoot 2021 — 오토인코더 압축 위성영상 기반 측위\n> [!note] 추정 — 좌우 5 m 범위의 의미\n> 기준 영상이 경로 좌우 5 m까지만 있으므로,[^1] 기체가 계획 경로에서 5 m 넘게 벗어나면 대응하는 기준 영상이 없어 측위가 어려울 것으로 본다. 원문 발췌에 이 상황의 실험은 없다. 따라서 이 방식은 **정해진 경로를 반복 비행**하는 임무(배송·순찰 등)에 맞고, 자유 비행에는 맞지 않는다고 판단한다.",
+    "ALTO — UAV 시각 장소 인식(VPR)·위치추정 데이터셋 — 동작 원리 (데이터셋 구성)\n- 원문은 이 데이터셋을 \"the largest real-world aerial-vehicle dataset of this kind\"(이 종류의 실제 항공기 데이터셋 중 최대)라고 소개한다.[^1]\n- 참조 영상이 함께 제공되므로 VPR 벤치마크 외에 영상 정합, 시각 주행거리계 같은 위치추정 과제에도 쓸 수 있다고 밝힌다.[^1]",
+    "ALTO — UAV 시각 장소 인식(VPR)·위치추정 데이터셋 — 요약\nALTO는 무인항공기(UAV)의 **시각 장소 인식(Visual Place Recognition, VPR)과 위치추정** 방법을 개발·벤치마크하기 위한 영상 중심 데이터셋이다.[^1] 헬리콥터로 미국 오하이오·펜실베이니아 상공을 약 150 km·260 km 비행한 긴 궤적 2개로 구성되며, 고정밀 GPS-INS 정답 위치, 가속도계, 레이저 고도계, 하방 RGB 카메라 영상을 담는다.[^1]",
+    "위성·항공영상 기반 드론 절대 위치추정 — 지도 데이터 라이선스\n위성영상 측위는 **기준 지도 자체의 이용 조건**이 제품화 가능성을 좌우한다.",
+    "UAV-위성 지리위치(절대 시각 측위) 공개 데이터셋 비교 — 데이터셋 비교\n| 데이터셋 | 규모 | 촬영 고도·시점 | 플랫폼·센서 | 지역 | 기준 지도 | 라이선스 | 상업 이용 |\n|---|---|---|---|---|---|---|---|\n| **UAV-VisLoc** (2024) | 드론 영상 6,742장, 위성지도 11장, 전체 16.4 GB(샘플 2.04 GB)[^1] | 여러 고도·방향(수치 자료 없음), 하향 영상[^1] | 고정익·멀티로터 드론, 드론 영상 약 0.1~0.2 m/px[^1] | 중국 11개 지역(도시·소도시·농지·강·구릉·마을)[^1] | 정사보정 위성지도 0.3 m/px, 위경도·고도·촬영일 메타데이터[^1] | 자료 없음(README에서 확인 안 됨)[^1] | 자료 없음 |\n| **VPAIR** (2022) | 쿼리·기준 2,706쌍 + 방해 영상 10,000장(샘플 0.86 GB, Zenodo)[^2] | 지상 300 m 이상, 하향 카메라[^2] | 경비행기[^2] | 독일 본~아이펠 산지, 100 km 이상 궤적(도시·농지·숲)[^2] | 고해상도 기준 렌더 + 조밀 깊이 + 6자유도 포즈[^2] | 학술용만[^2] | **불가**[^2] |\n| **GTA-UAV** (Game4Loc, AAAI 2025) | 드론 33,763장(합성) + 위성 타일 14,640장(4개 줌), 저해상도판 12.8 GB / 고해상도판 143.3 GB[^3] | 80~650 m, 다양한 자세[^3] | 게임(GTA) 엔진 합성[^3] | 게임 내 연속 지역 81.3 km²[^3] | 게임 내 위성 타일(실제 지도 아님)[^3] | Apache-2.0 (README)[^3] | README상 허용 표기 — 아래 추정 참조 |\n| **AnyVisLoc** (CVPR 2026 Findings) | 초록 18,000장 / README 20,077장[^4] | 6~500 m, 피치 5°~90°[^4] | DJI 여러 기종[^4] | 중국 24개 장면(도심·랜드마크·자연), 여러 날씨·계절[^4] | 항공 사진측량 정사영상 + 과거 위성영상, 각각 DSM(2.5D)[^4] | 비상업 학술 전용[^4] | **불가**[^4] |\n| **OrthoLoC** (NeurIPS 2025) | 초록 16,425장 / README 16,427장[^5] | 23~154 m, 틸트 0°~86.8°[^5] | UAV(기종 자료 없음), 다중 모달리티[^5] | 독일·미국[^5] | 정부 공개 정사영상(DOP)·DSM[^5] | CC BY-NC-SA 4.0 (코드·데이터)[^5] | **불가**[^5] |\n| **University-1652** (ACM MM 2020) | 72개 대학 1,652개 건물, 학습 50,218장(33개 대학 701개 건물), 테스트 39개 대학[^6] | 자료 없음 | 드론·위성·지상 3시점[^6] | 전 세계 72개 대학[^6] | 위성 시점 영상[^6] | 코드 MIT, 데이터 조건 자료 없음(신청 기반)[^6] | 자료 없음 |\n| **DenseUAV** (IEEE TIP 2024) | 학습 UAV 6,768장 + 위성 13,536장, 쿼리 UAV 2,331장 + 위성 4,662장, 갤러리 UAV 9,099장 + 위성 18,198장[^13] | 80·90·100 m[^7] | UAV(기종 자료 없음)[^7] | 대학 캠퍼스(저고도 도심) — 학습 10·쿼리 4·갤러리 14개 대학[^13] | 위성 시점 영상[^7] | Apache-2.0 (README)[^7] | README상 허용 표기 |\n| **ALTO** (2022) | 궤적 약 150 km·260 km 2개(영상 수 자료 없음)[^12] | 자료 없음 | 헬리콥터, 하방 RGB·GPS-INS·레이저 고도계[^12] | 미국 오하이오·펜실베이니아[^12] | 비행 경로 상공 참조 영상[^12] | 저장소 메타데이터 BSD-3-Clause, 정식 전체 데이터 \"Coming soon\"[^12] | 자료 없음 — ALTO 문서 참조 |",
+    "UAV-위성 지리위치(절대 시각 측위) 공개 데이터셋 비교 — 드론 적용 시 고려사항\n- **고도·시점 맞추기**: 데이터셋마다 고도(6 m~650 m)·카메라 각도가 크게 다르다.[^3][^4][^5][^7] 자기 기체의 운용 고도·카메라 틸트에 가까운 데이터로 평가해야 한다.\n- **지역 편중**: UAV-VisLoc·AnyVisLoc은 중국,[^1][^4] VPAIR·OrthoLoC은 독일(OrthoLoC은 미국 포함)이다.[^2][^5] 한국 지역 공개 데이터셋은 수집 자료에 없다(자료 없음).\n- **페어 데이터 부족 대응**: 위성 기준 영상만으로 학습하는 방식(CAEVL)도 있다.[^11]\n- 기술·오픈소스 비교는 위성·항공영상 기반 드론 절대 위치추정 참조."
+   ],
+   "ctx_docs": [
+    "04_ai_detection_tracking/sensor_fusion/satellite-image-uav-localization",
+    "04_ai_detection_tracking/datasets/alto-uav-vpr-dataset",
+    "04_ai_detection_tracking/datasets/alto-uav-vpr-dataset",
+    "04_ai_detection_tracking/sensor_fusion/satellite-image-uav-localization",
+    "04_ai_detection_tracking/datasets/uav-satellite-geolocalization-datasets",
+    "04_ai_detection_tracking/datasets/uav-satellite-geolocalization-datasets"
+   ],
+   "gold_docs": [
+    "04_ai_detection_tracking/datasets/uav-satellite-geolocalization-datasets",
+    "04_ai_detection_tracking/datasets/alto-uav-vpr-dataset"
+   ],
+   "rounds": 1,
+   "sec": 4.9
+  },
+  {
+   "id": 25,
+   "kind": "관계",
+   "question": "Omni-swarm 시스템을 구성하기 위해 필요한 센서 중 UWB 모듈인 LinkTrack이 지원하는 기능과, Omni-swarm 구성을 위해 필요한 전체 센서 구성은 무엇인가요?",
+   "reference": "LinkTrack은 앵커 기반 측위(LP), 앵커 없는 분산 레인징(DR), 고속 데이터 전송(DT) 모드를 제공하며, Omni-swarm의 센서 구성에는 스테레오 광각(어안) 카메라 + UWB + 컴패니언 컴퓨터가 필요합니다.",
+   "answer": "Nooploop LinkTrack은 UWB 기반의 군집 상대 위치추정을 위한 모듈로 사용됩니다 [1].\n\nOmni-swarm 시스템 구성을 위한 세부 사항은 다음과 같습니다.\n\n*   **LinkTrack 지원 기능**: 등록된 자료에서 LinkTrack이 지원하는 구체적인 기능에 대한 정보는 찾지 못했습니다 [1, 2, 3, 4, 6]. 다만, Nooploop LinkTrack 계열의 UWB 모듈을 지원한다는 점과 완성형 UWB 측위 시스템이라는 점은 확인됩니다 [2, 6].\n*   **전체 센서 구성**: Omni-swarm은 카메라, VIO(Visual-Inertial Odometry), 그리고 UWB를 융합하여 사용합니다 [3]. 구체적으로는 시각 항법을 위한 카메라와 시각-관성 정보를 결합한 VIO, 그리고 기체 간 거리를 측정하는 UWB 센서가 포함됩니다 [1, 3, 5].",
+   "contexts": [
+    "시각-관성-UWB 군집 상태추정 (Omni-swarm) — 관련 제품·기술\n- UWB 기반 군집 상대 위치추정\n- UWB 군집 레인징 스케줄링·MAC\n- Nooploop LinkTrack — 지원 UWB 모듈\n- GNSS 거부 환경 시각 항법\n- PX4 + MAVROS 외부 VIO 연동\n- 드론 군집 충돌회피 개요",
+    "시각-관성-UWB 군집 상태추정 (Omni-swarm) — 동작 원리\n### 오픈소스 구현 (GitHub README)\n| 항목 | 내용 | 출처 |\n|---|---|---|\n| UWB 하드웨어 | \"Support NoopLoop UWB module only\" — Nooploop LinkTrack 계열 | [^3] |\n| UWB 없이 동작 | 자기 식별(드론 ID 1부터, 기체마다 다르게)을 켜면 UWB 모듈 없이도 동작 | [^3] |\n| 의존 패키지 | VINS-Fisheye(핀홀 호환판 필요), swarm_msgs, inf_uwb_ros, swarm_detector(선택) | [^3] |\n| 공식 구현 플랫폼 | NVIDIA TX2 + Ubuntu 18.04. 다른 구성은 CNN 모델을 TensorRT로 변환해야 함 | [^3] |\n| 데이터셋 | 전방위·핀홀 데이터셋(Dropbox 링크), CNN 모델은 별도 내려받아 swarm_loop 폴더에 풀기 | [^3] |\n| 라이선스 | GPLv3 | [^3] |",
+    "UWB 기반 군집 상대 위치추정 — 관련 제품·기술\n- 시각-관성-UWB 군집 상태추정 (Omni-swarm) — 카메라·VIO와 UWB 융합\n- UWB 군집 레인징 스케줄링·MAC — 다수 기체 레인징 프로토콜\n- UWB NLOS·다중경로 바이어스 대응\n- Nooploop LinkTrack, Bitcraze Loco Positioning deck, Qorvo DWM3001C — UWB 모듈\n- ArduPilot Nooploop UWB 비GPS 비컨 설정, PX4 외부 위치 입력으로 UWB 측위 주입\n- 드론 군집 충돌회피 개요 — 상대 위치의 주 용도\n- UAV 군집 편대 제어 기법 종합\n- GNSS 거부 환경 시각 항법 — 단일 기체 GNSS 대체 측위",
+    "UWB 군집 레인징 스케줄링·MAC — 관련 제품·기술\n- UWB 기반 군집 상대 위치추정 — 레인징 결과를 쓰는 추정기\n- 시각-관성-UWB 군집 상태추정 (Omni-swarm)\n- 군집 통신 제약·합의·분산 의사결정\n- FANET 라우팅\n- 드론 군집 충돌회피 개요\n- Bitcraze Loco Positioning deck, Nooploop LinkTrack, Qorvo DWM3001C\n- Bitcraze",
+    "UWB 기반 군집 상대 위치추정 — 요약\nUWB(초광대역) 무선기는 통신 패킷의 송수신 시각으로 기체 간 거리를 재는 **센서이자 통신 매체**로 쓰인다.[^5][^8] 군집에서는 (1) 고정 앵커를 설치하고 각 기체가 앵커 기준 위치를 구하는 **인프라 방식**과 (2) 앵커 없이 기체끼리 거리를 재서 **상대 위치**를 구하는 **무인프라(앵커리스) 방식**이 있다.[^4][^7] 무인프라 방식에서는 거리만으로는 상대 위치가 정해지지 않는 관측성 문제를 풀기 위해 이웃 상태 공유 EKF[^1], 다중 안테나[^3], 착륙 기체를 동적 앵커로 쓰기[^4], IMU 사전적분 공유[^5], VIO 융합(시각-관성-UWB 융합) 같은 보조 정보를 결합한다.",
+    "Qorvo DWM3001C — 대안·비교\n- Nooploop LinkTrack — 완성형 UWB 측위 시스템 (근거는 해당 문서).\n- Bitcraze Loco Positioning deck — DWM1000 기반 Crazyflie 전용 덱 (근거는 해당 문서)."
+   ],
+   "ctx_docs": [
+    "07_swarm/algorithms/visual-inertial-uwb-swarm-estimation",
+    "07_swarm/algorithms/visual-inertial-uwb-swarm-estimation",
+    "07_swarm/algorithms/uwb-relative-localization",
+    "07_swarm/algorithms/uwb-swarm-ranging-mac",
+    "07_swarm/algorithms/uwb-relative-localization",
+    "02_hardware/datalink/qorvo-dwm3001c"
+   ],
+   "gold_docs": [
+    "02_hardware/datalink/nooploop-linktrack",
+    "07_swarm/algorithms/visual-inertial-uwb-swarm-estimation"
+   ],
+   "rounds": 1,
+   "sec": 6.8
+  },
+  {
+   "id": 26,
+   "kind": "관계",
+   "question": "PX4 v1.17 기준 PX4 Zenoh의 기본 주소와 ROS 2 Jazzy(Ubuntu 24.04) 환경에서 사용되는 메시지 정의 라이브러리의 이름은 무엇인가요?",
+   "reference": "PX4 v1.17 기준 PX4 Zenoh의 기본 주소는 `10.41.10.1:7447`이며, ROS 2 Jazzy 환경에서 사용하는 메시지 정의 라이브러리는 `px4_msgs`입니다.",
+   "answer": "등록된 자료에서 PX4 v1.17 기준 PX4 Zenoh의 기본 주소에 대한 근거를 찾지 못했습니다.\n\nROS 2 Jazzy(Ubuntu 24.04) 환경에서 사용되는 메시지 정의 라이브러리의 이름은 등록된 자료에 명시되어 있지 않습니다. 다만, ROS 2 Jazzy와 함께 사용되는 것으로 언급된 오픈소스 프로젝트는 aerial-autonomy-stack이며, 이 프로젝트는 PX4 1.17.0을 ROS 2 Jazzy, Gazebo Sim Harmonic과 함께 사용합니다 [6].",
+   "contexts": [
+    "rmw_zenoh와 PX4 Zenoh 미들웨어 — 동작 원리\n> [!note] 추정 — v1.18 변경과 기존 설명의 관계\n> 위 \"PX4 쪽 설정\"의 발행자 옵션 설명은 PX4 main 문서 기준이라 v1.18 변경과 같은 내용으로 보이며, \"Humble 이하 지원\"은 아래 \"PX4 쪽 타입 해시\" 제약(`CONFIG_ZENOH_KEY_TYPE_HASH`)과 관련된 변경으로 보인다. 두 원문을 대조한 해석이며 원문이 직접 연결해 설명하지는 않는다.[^2][^6]",
+    "PX4 ROS 2 Interface Library (px4-ros2-interface-lib) — 대안·비교\n- MAVSDK — MAVLink 기반 PX4 제어 SDK. 두 방식을 직접 비교한 원문은 자료 없음.\n- rmw_zenoh와 PX4 Zenoh 미들웨어 — uXRCE-DDS 대신 쓰는 실험적 미들웨어. 이 라이브러리와의 조합 여부는 자료 없음.\n- ROS 2 미들웨어 도구 · ROS 2 배포판",
+    "rmw_zenoh와 PX4 Zenoh 미들웨어 — 요약\n**rmw_zenoh**는 zenoh-cpp 바인딩으로 작성된 Zenoh 기반 ROS 2 RMW(미들웨어) 구현으로, ROS 2 공식 GitHub 조직(ros2)에서 관리하며 Apache-2.0 라이선스다.[^1] **PX4 Zenoh**는 PX4의 uORB 토픽을 DDS 대신 Zenoh로 ROS 2에 연결하는 기능으로, 비행 제어기에서 Zenoh-Pico 노드가, 컴패니언 컴퓨터에서 Zenoh 라우터가 동작하며 ROS 2 쪽은 `rmw_zenoh`를 쓴다.[^2] PX4 쪽 Zenoh는 **PX4 v1.17 기준 실험적(experimental)** 기능이다.[^2] rmw_zenoh는 **Humble과 그 이후 배포판 사이에서 통신이 되지 않는** 제약이 있다.[^1]",
+    "PX4 v1.18 (개발 중 — 베타·RC 단계) — 주요 변경 사항\n### Zenoh\n- 발행 옵션(신뢰성, 우선순위, 혼잡 제어, express) 설정 가능.[^1]\n- ARKV6X 비행 제어기용 Zenoh 빌드 변형(`zenoh.px4board`) 추가.[^1]\n- \"Added support for ROS 2 Humble and earlier.\" — ROS 2 Humble 이하 지원 추가.[^1] 상세는 rmw_zenoh와 PX4 Zenoh 미들웨어.",
+    "PX4 v1.18 (개발 중 — 베타·RC 단계) — 호환성\n- PX4–ROS 2 연동 — uXRCE-DDS 변경 반영\n- rmw_zenoh와 PX4 Zenoh 미들웨어 — Zenoh 변경 반영\n- ROS 2 배포판 — Lyrical Luth·Rolling Ridley 일정·지원 플랫폼\n- ARKV6X(Zenoh 빌드 변형), X-Plane, RotorPy — 위키 문서 없음[^1]",
+    "PX4 v1.17 — 호환성\n- PX4–ROS 2 연동 — uXRCE-DDS(권장)·Zenoh 미들웨어\n- rmw_zenoh와 PX4 Zenoh 미들웨어 — Zenoh 설정·제약 상세\n- aerial-autonomy-stack 오픈소스 프로젝트는 PX4 1.17.0을 ROS 2 Jazzy, Gazebo Sim Harmonic과 함께 사용한다(README 압축 발췌 — 원문 재확인 필요).[^3]\n- Gazebo Jetty 지원[^2]\n- FC: Radiolink PIX6, CUAV X25-Evo, Accton Godwit GA1 (v1.17 신규 지원)[^1] — 위키 문서 없음\n- GPS·센서: ARK X20, ARK F9P, ARK DIST[^1] — 위키 문서 없음"
+   ],
+   "ctx_docs": [
+    "01_software/ros2/rmw-zenoh-px4",
+    "01_software/ros2/px4-ros2-interface-lib",
+    "01_software/ros2/rmw-zenoh-px4",
+    "01_software/px4/px4-v1-18",
+    "01_software/px4/px4-v1-18",
+    "01_software/px4/px4-v1-17"
+   ],
+   "gold_docs": [
+    "01_software/ros2/rmw-zenoh-px4",
+    "01_software/ros2/px4-ros2-integration"
+   ],
+   "rounds": 1,
+   "sec": 4.7
+  },
+  {
+   "id": 27,
+   "kind": "관계",
+   "question": "NVIDIA Jetson Orin Nano에 Arducam OV9281 카메라 모듈을 사용할 때, OS 업데이트 시 주의해야 할 드라이버 관련 사항과 해당 보드의 최대 CSI 카메라 연결 가능 대수는 어떻게 됩니까?",
+   "reference": "JetPack(OS)을 바꾸면 드라이버를 다시 맞춰 설치해야 할 수 있으며, Jetson Orin Nano의 CSI 카메라는 최대 4대(가상 채널 8대)까지 연결 가능합니다.",
+   "answer": "NVIDIA Jetson Orin Nano에서 Arducam OV9281 카메라 모듈 사용 시, OS 업데이트와 관련된 구체적인 드라이버 주의 사항은 등록된 자료에서 근거를 찾지 못했습니다 [2].\n\n해당 보드(Orin Nano)의 최대 CSI 카메라 연결 가능 대수는 다음과 같습니다.\n- Orin Nano는 CSI 카메라를 최대 4대(가상 채널 8대)까지 지원합니다 [2].",
+   "contexts": [
+    "Arducam OV9281 글로벌 셔터 NoIR 카메라 모듈 (B0223) — 요약\nB0223은 OV9281 모노크롬 글로벌 셔터 센서(1MP, NoIR)를 쓴 MIPI CSI 2-lane 단일 카메라 모듈로, 제품명에 NVIDIA Jetson AGX Orin / Orin Nano / Orin NX를 명시한다. 외부 트리거와 듀얼 카메라 동기화를 지원하며 가격은 US$51.99(2026-10-11)다. [^1] IMU가 없는 단일 카메라이므로, VIO/스테레오 VSLAM에 쓰려면 2대 동기 구성이나 별도 IMU가 필요하다(아래 추정 참고). 선정 기준 전반은 VIO용 글로벌 셔터 카메라 선정 참고.",
+    "VIO용 글로벌 셔터 카메라 선정 (Jetson Orin Nano 기준) — 성능·한계\n> [!note] 추정 — MIPI CSI 직결 카메라의 지연\n> Arducam·e-con의 MIPI 카메라(B0223, B0429, e-CAM25_CUONX, B0263) 원문에는 **지연 수치가 없다.** [^8] [^9] [^10] [^13] MIPI CSI-2는 USB 프로토콜 스택을 거치지 않고 Jetson의 카메라 입력으로 직접 들어가므로 전송 지연이 USB보다 짧거나 예측 가능할 것으로 일반적으로 기대되지만, 이 위키는 이를 **수치로 뒷받침할 근거가 없다.** 실제 선정 시에는 Orin Nano에서 동일 해상도·fps로 직접 측정해야 한다. Orin Nano는 CSI 카메라를 최대 4대(가상 채널 8대) 지원한다. [^15]",
+    "Arducam OV9281 글로벌 셔터 NoIR 카메라 모듈 (B0223) — 장점\n- 모노 글로벌 셔터 센서로, 640×400에서 240 fps까지 표기되어 있다(Orin NX 항목). [^1]\n- 외부 트리거와 듀얼 카메라 동기화를 지원한다. [^1] Isaac ROS Visual SLAM은 스테레오 영상 간 오프셋 ±100 µs 이내를 요구하므로 동기 기능이 중요하다. [^2]\n- 제품명에 Orin Nano를 명시한 MIPI 모듈이다. [^1]\n- 가격이 US$51.99(2026-10-11)로, 같은 제조사의 Jetson용 AR0234 모듈 B0429(US$109.99)보다 저렴하다. [^1] [^3]\n- NoIR로 IR 감도가 있다. [^1]",
+    "VIO용 글로벌 셔터 카메라 선정 (Jetson Orin Nano 기준) — 성능·한계\n**지원 플랫폼 (2026-10-11 기준 최신 문서)** [^2]\n| 플랫폼 | 하드웨어 | 소프트웨어 |\n|---|---|---|\n| Jetson | \"Jetson Thor (T5000 and T4000) and Jetson Orin\" | \"JetPack 7.2\", \"128+ GB NVMe SSD\" |\n| x86_64 | Ampere 이상 NVIDIA GPU, 8 GB RAM 이상 | Ubuntu 24.04, CUDA 13.2+, NVIDIA Driver 595+, 32 GB+ 디스크 |\n| DGX | DGX Spark | DGX OS 7.2.3 |",
+    "DEBIX M8391-01 — 장점\n- 9 TOPS NPU를 85×56 mm 보드에 내장했다.[^1]\n- 4-lane MIPI CSI(최대 32MP@30fps)로 카메라를 직접 연결할 수 있다.[^1]\n- 전원이 5V/3A(Type-C)로 단순하다.[^1]\n- -40~85°C 산업용 온도 옵션이 있다.[^1]\n- 기가비트 이더넷(PoE), Wi-Fi 6, PCIe 2.0 M.2 SSD 확장.[^1]",
+    "Luxonis OAK-D Pro W — 호환성\n- USB 2/3 호스트, 전원·통신 겸용. [^1] [^2]\n- NVIDIA Jetson Orin Nano: 공식 지원 근거 자료 없음.\n- PX4: 카메라가 직접 PX4에 연결되지 않으며, 컴패니언 컴퓨터의 VIO 결과를 MAVROS로 전달하는 구성이 된다 — 상세는 VIO 카메라 선정의 PX4 연동 절."
+   ],
+   "ctx_docs": [
+    "03_sensor/eo_ir/arducam-ov9281-b0223",
+    "03_sensor/eo_ir/vio-global-shutter-camera-selection",
+    "03_sensor/eo_ir/arducam-ov9281-b0223",
+    "03_sensor/eo_ir/vio-global-shutter-camera-selection",
+    "04_ai_detection_tracking/edge_ai/debix-m8391-01",
+    "03_sensor/eo_ir/luxonis-oak-d-pro-w"
+   ],
+   "gold_docs": [
+    "03_sensor/eo_ir/arducam-ov9281-b0223",
+    "04_ai_detection_tracking/edge_ai/nvidia-jetson-orin-nano"
+   ],
+   "rounds": 1,
+   "sec": 4.4
+  }
+ ]
+}
