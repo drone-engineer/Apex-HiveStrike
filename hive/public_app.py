@@ -108,6 +108,7 @@ def search_page(request: Request, q: str = "", mode: str = "graph"):
         mode = "graph"
     hits = retrieve.MODES[mode](q.strip()[:300], k=8) if q.strip() else []
     return page(request, "search.html", "/search", title="검색", q=q, hits=hits, mode=mode, modes=MODE_LABEL,
+                graph_backend=retrieve.graph_backend(),
                 by_path=data()["by_path"])
 
 
@@ -144,4 +145,5 @@ def doc(request: Request, path: str):
 @app.get("/healthz")
 def healthz():
     d = data()
-    return {"ok": True, "docs": len(d["docs"]), "exported_at": d["exported_at"], "answer": answer.enabled()}
+    return {"ok": True, "docs": len(d["docs"]), "exported_at": d["exported_at"], "answer": answer.enabled(),
+            "graph": retrieve.graph_backend()}

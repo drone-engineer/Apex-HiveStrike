@@ -149,6 +149,9 @@ def report():
             f"(단일 문서 {sum(t['kind'] == '단일 문서' for t in ts)}, 관계 {sum(t['kind'] == '관계' for t in ts)})\n"
             f"- 답변 LLM: {', '.join(gen)} / 채점 LLM: {', '.join(judge)}\n"
             f"- 임베딩: `{index.MODEL}`\n\n" + "\n".join(lines) + "\n")
+    notes = HERE / "notes.md"
+    if notes.exists():  # 사람이 쓴 지표 설명·해석·한계
+        body += notes.read_text()
     (HERE / "report.md").write_text(body)
     print(body)
 

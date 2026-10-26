@@ -19,7 +19,8 @@ from .export import OUT
 @lru_cache(maxsize=1)
 def driver():
     from neo4j import GraphDatabase
-    return GraphDatabase.driver(os.environ["NEO4J_URI"], auth=(os.environ.get("NEO4J_USERNAME", "neo4j"), os.environ["NEO4J_PASSWORD"]))
+    return GraphDatabase.driver(os.environ["NEO4J_URI"], auth=(os.environ.get("NEO4J_USERNAME", "neo4j"), os.environ["NEO4J_PASSWORD"]),
+                                connection_timeout=5, max_transaction_retry_time=5)
 
 
 def sync():

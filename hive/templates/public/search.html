@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
 <h1 class="page">검색</h1>
-<p class="lead">문서를 절 단위로 나눠 뜻으로 찾고(벡터), 제조사·호환·관련 관계를 따라 이웃 문서까지 넓혀 찾습니다(GraphRAG).</p>
+<p class="lead">문서를 절 단위로 나눠 뜻으로 찾고(벡터), 제조사·호환·관련 관계를 따라 이웃 문서까지 넓혀 찾습니다(GraphRAG). <span class="note">그래프 저장소: {{ graph_backend }}</span></p>
 <form class="ask" method="get" action="/search" style="margin:12px 0">
   <input name="q" value="{{ q }}" placeholder="예: MN4014 모터에 맞는 프롭과 ESC" autofocus>
   <input type="hidden" name="mode" value="{{ mode }}"><button class="btn">검색</button>

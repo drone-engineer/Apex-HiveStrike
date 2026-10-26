@@ -47,7 +47,10 @@ def neighbors(paths):
     """{문서: [(이웃, 관계)]} — Neo4j가 설정돼 있으면 거기서 읽는다."""
     if os.environ.get("NEO4J_URI"):
         from . import graphdb
-        return graphdb.neighbors(paths, list(REL_WEIGHT))
+        try:
+            return graphdb.neighbors(paths, list(REL_WEIGHT))
+        except Exception:  # Aura Free는 오래 안 쓰면 일시정지된다 — 그때는 같은 그래프를 파일에서 읽는다
+            pass
     nbr = store()[4]
     return {p: nbr.get(p, []) for p in paths}
 
@@ -118,6 +121,10 @@ def graph(q, k=6, expand=3):
                 cand[dst] = (s, ids[j], f"{docs[src]['title']} —{REL_KO[rel]}→")
     extra = sorted(cand.values(), key=lambda x: -x[0])[:expand]
     return base + [_hit(chunks[i], s, via) for s, i, via in extra]
+
+
+def graph_backend():
+    return "Neo4j" if os.environ.get("NEO4J_URI") else "파일(graph.json)"
 
 
 MODES = {"keyword": keyword, "vector": vector, "hybrid": hybrid, "graph": graph}
