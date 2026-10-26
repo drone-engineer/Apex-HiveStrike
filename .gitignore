@@ -5,3 +5,4 @@ data/*
 !data/public/
 !data/model/
 *.log
+Neo4j-*.txt
