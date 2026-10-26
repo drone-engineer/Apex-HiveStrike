@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block body %}
+<h1 class="page">검색</h1>
+<p class="lead">문서를 절 단위로 나눠 뜻으로 찾고(벡터), 제조사·호환·관련 관계를 따라 이웃 문서까지 넓혀 찾습니다(GraphRAG).</p>
+<form class="ask" method="get" action="/search" style="margin:12px 0">
+  <input name="q" value="{{ q }}" placeholder="예: MN4014 모터에 맞는 프롭과 ESC" autofocus>
+  <input type="hidden" name="mode" value="{{ mode }}"><button class="btn">검색</button>
+</form>
+<div class="chips">{% for m, l in modes.items() %}<a class="chip {{ 'on' if mode == m else '' }}" href="?q={{ q|urlencode }}&mode={{ m }}">{{ l }}</a>{% endfor %}</div>
+{% if hits %}<div class="card"><ul class="list">
+{% for h in hits %}{% set d = by_path.get(h.path) %}
+<li>
+  {% if h.via %}<span class="badge ok">그래프 확장</span>{% endif %}<span class="badge">{{ (d.type if d else '')|tk }}</span><a class="t" href="/doc/{{ h.path }}">{{ h.title }}</a> <span class="note">› {{ h.heading }}</span>
+  {% if h.via %}<div class="note">관계: {{ h.via }} {{ h.title }}</div>{% endif %}
+  <div class="note">{% set t = h.text|regex_clean %}{{ t[:260] }}{% if t|length > 260 %}…{% endif %}</div>
+</li>{% endfor %}
+</ul></div>{% elif q %}<p class="note">“{{ q }}”에 맞는 내용을 찾지 못했습니다.</p>{% endif %}
+{% endblock %}

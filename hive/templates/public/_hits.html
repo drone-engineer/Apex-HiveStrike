@@ -1,0 +1,3 @@
+{% if hits %}<div class="card"><ul class="list">
+{% for d in hits %}<li><span class="badge">{{ d.type|tk }}</span><a class="t" href="/doc/{{ d.path }}">{{ d.title }}</a> <span class="note">· {{ label(d.category) }}</span><div class="note">{{ snippet(d, q) }}</div></li>{% endfor %}
+</ul></div>{% elif q %}<p class="note">“{{ q }}”에 맞는 문서를 찾지 못했습니다.</p>{% endif %}

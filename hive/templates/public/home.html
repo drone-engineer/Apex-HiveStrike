@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="crumb">드론 엔지니어링 지식 베이스</div>
+<h1 class="page">지식기반 답변</h1>
+<p class="lead">질문하면 검토를 거친 드론 지식 문서에서 근거를 찾아 답합니다. 근거가 없으면 모른다고 답합니다.</p>
+<form class="ask" method="post" action="/ask">
+  <input name="q" required maxlength="500" placeholder="예: 6S 멀티콥터에 맞는 모터와 프롭 추천" autofocus>
+  <button class="btn">{{ "답변 받기" if ask_on else "자료 찾기" }}</button>
+</form>
+<div class="chips">{% for e in examples %}<a class="chip" href="#" onclick="document.querySelector('[name=q]').value=this.textContent;return false">{{ e }}</a>{% endfor %}</div>
+<p class="note">{% if ask_on %}답은 등록된 문서에 근거가 있을 때만 사실처럼 말하고, 문서 번호로 출처를 밝힙니다.{% else %}답변 기능은 준비 중입니다. 지금은 질문과 관련된 문서를 찾아 보여 줍니다.{% endif %}</p>
+
+<h2 style="margin-top:36px">분야별 둘러보기</h2>
+<div class="grid">
+{% for c in cats %}
+  <a class="card" href="/c/{{ c.key }}" style="color:inherit;text-decoration:none">
+    <h3>{{ c.label }}</h3>
+    <div class="note">{{ c.hub.summary if c.hub else "" }}</div>
+    <div class="big" style="font-size:22px">{{ c.count }}<span class="note"> 문서</span></div>
+  </a>
+{% endfor %}
+</div>
+
+<h2 style="margin-top:36px">최근 갱신</h2>
+<div class="card"><ul class="list">
+{% for d in recent %}<li><span class="badge">{{ d.type|tk }}</span><a class="t" href="/doc/{{ d.path }}">{{ d.title }}</a> <span class="note">· {{ label(d.category) }} · {{ d.updated }}</span><div class="note">{{ d.summary }}</div></li>{% endfor %}
+</ul></div>
+{% endblock %}
+{% block footer %}공개 자료 기준 {{ exported_at }} · 모든 문서는 원문 링크와 각주로 출처를 밝힙니다.{% endblock %}

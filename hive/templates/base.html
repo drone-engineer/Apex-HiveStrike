@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ title or "" }}{% endblock %} · Apex HiveStrike</title>
+<link rel="stylesheet" href="/static/style.css">
+{% if admin %}<meta name="robots" content="noindex,nofollow">{% endif %}
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="{{ root or '' }}/">Apex HiveStrike{% if admin %}<small>관리자{% if readonly %} · 스냅샷{% endif %}</small>{% endif %}</a>
+  {% if admin %}<a href="{{ public_url }}" target="_blank">사용자 화면 ↗</a>{% endif %}
+</div></header>
+<nav class="tabs"><div class="wrap">
+  {% for href, label in nav %}<a href="{{ href }}" class="{{ 'on' if active == href else '' }}">{{ label }}</a>{% endfor %}
+</div></nav>
+<main><div class="wrap">
+{% if flash %}<div class="flash {{ flash_kind or '' }}">{{ flash }}</div>{% endif %}
+{% block body %}{% endblock %}
+</div></main>
+<footer><div class="wrap">{% block footer %}{% endblock %}</div></footer>
+</body>
+</html>

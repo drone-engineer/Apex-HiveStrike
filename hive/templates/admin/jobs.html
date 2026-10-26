@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block body %}
+<h1 class="page">예약 작업</h1>
+<p class="lead">launchd로 도는 수집·점검 작업의 마지막 실행 결과입니다 (<code>.claude/logs/cron-*.log</code>).</p>
+<div class="grid two">
+{% for j in jobs %}<div class="card"><h3><span class="badge {{ j.kind }}">{{ j.state }}</span>{{ j.job }}</h3><div class="note">{{ j.at }}</div><pre class="log">{{ j.tail }}</pre></div>{% endfor %}
+</div>
+{% endblock %}

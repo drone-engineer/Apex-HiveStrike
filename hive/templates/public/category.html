@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="crumb">{% if parent %}<a href="/c/{{ parent }}">{{ label(parent) }}</a> › {% endif %}분야</div>
+<h1 class="page">{{ label(cat) }}</h1>
+{% if hub %}<p class="lead">{{ hub.summary }}</p>{% endif %}
+{% if groups|length > 1 %}<div class="chips">{% for c, l, items in groups %}<a class="chip" href="#{{ c }}">{{ l }} · {{ items|length }}</a>{% endfor %}</div>{% endif %}
+{% for c, l, items in groups %}
+<h2 id="{{ c }}" style="margin-top:28px"><a href="/c/{{ c }}" style="color:inherit">{{ l }}</a></h2>
+<div class="grid">
+{% for d in items %}
+  <a class="card" href="/doc/{{ d.path }}" style="color:inherit;text-decoration:none">
+    <span class="badge">{{ d.type|tk }}</span>
+    <h3 style="margin-top:6px">{{ d.title }}</h3>
+    <div class="note">{{ d.summary[:140] }}{% if d.summary|length > 140 %}…{% endif %}</div>
+  </a>
+{% endfor %}
+</div>
+{% else %}<p class="note">아직 문서가 없습니다.</p>{% endfor %}
+{% endblock %}

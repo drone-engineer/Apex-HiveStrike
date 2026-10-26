@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block body %}
+<h1 class="page">문서</h1>
+<form class="ask" method="get" action="{{ root }}/browse" style="margin:12px 0">
+  <input name="q" value="{{ q }}" placeholder="검색어 (비우면 최근 수정 순)">
+  <input type="hidden" name="scope" value="{{ scope }}"><button class="btn">검색</button>
+</form>
+<div class="chips">{% for s, l in [("wiki", "위키 (공개 지식)"), ("raw", "raw 원문"), ("workspaces", "사내 워크스페이스")] %}<a class="chip {{ 'on' if scope == s else '' }}" href="?scope={{ s }}&q={{ q }}">{{ l }}</a>{% endfor %}</div>
+<div class="card"><ul class="list">
+{% for d in hits %}<li><span class="badge">{{ d.type|tk }}</span><a class="t" href="{{ view_url(d.path) }}">{{ d.title }}</a> <span class="note">· {{ d.path }} · {{ d.mtime }}</span><div class="note">{{ snippet(d, q) if q else d.summary }}</div></li>{% else %}<li class="note">없음</li>{% endfor %}
+</ul></div>
+{% endblock %}

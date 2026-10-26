@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block body %}
+<h1 class="page">수집함</h1>
+<p class="lead">자동 수집된 자료입니다. 승인하면 <code>raw/&lt;종류&gt;/</code>로 옮겨 위키 작성 대상이 되고, 제외하면 같은 URL을 다시 수집하지 않습니다. 디스코드 수집함 게시글의 태그도 함께 바뀝니다.</p>
+<div class="chips">
+  {% for s in ["검토중", "보류"] %}<a class="chip {{ 'on' if status == s else '' }}" href="?status={{ s }}&kind={{ kind }}">{{ s }} {{ counts.get(s, 0) }}</a>{% endfor %}
+  <span class="note" style="align-self:center">|</span>
+  <a class="chip {{ 'on' if not kind else '' }}" href="?status={{ status }}">전체</a>
+  {% for k in kinds %}<a class="chip {{ 'on' if kind == k else '' }}" href="?status={{ status }}&kind={{ k }}">{{ k }}</a>{% endfor %}
+</div>
+<div class="card"><ul class="list">
+{% for i in items %}
+<li>
+  <span class="badge">{{ i.kind }}</span><a class="t" href="{{ view_url('raw/_inbox/' ~ i.file[:-3]) }}">{{ i.title }}</a>
+  <div class="note">{{ i.summary }}</div>
+  <div class="note">{% if i.fm.url %}<a href="{{ i.fm.url }}" target="_blank" rel="noopener">원문 링크</a> · {% endif %}{{ i.fm.publisher or "" }} {{ i.fm.published or "" }}</div>
+  {% if not readonly %}<form method="post" action="{{ root }}/inbox/decide" class="inline" style="margin-top:8px">
+    <input type="hidden" name="file" value="{{ i.file }}"><input type="hidden" name="ret" value="{{ root }}/inbox?status={{ status }}&kind={{ kind }}">
+    <input class="reason" name="reason" placeholder="이유 (선택)">
+    <button class="btn sm ok" name="status" value="승인">승인</button>
+    {% if i.status != "보류" %}<button class="btn sm warn" name="status" value="보류">보류</button>{% endif %}
+    <button class="btn sm bad" name="status" value="제외">제외</button>
+  </form>{% endif %}
+</li>
+{% else %}<li class="note">해당 자료가 없습니다.</li>{% endfor %}
+</ul></div>
+{% endblock %}

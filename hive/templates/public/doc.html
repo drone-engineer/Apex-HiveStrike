@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="crumb"><a href="/c/{{ d.category.split('/')[0] }}">{{ label(d.category.split('/')[0]) }}</a>{% if '/' in d.category %} › <a href="/c/{{ d.category }}">{{ label(d.category) }}</a>{% endif %}</div>
+<div class="layout">
+  <article class="doc">{{ d.html|safe }}</article>
+  <aside class="side">
+    <div class="card"><dl>
+      <dt>유형</dt><dd>{{ d.type|tk }}</dd>
+      {% if d.fm.manufacturer %}<dt>제조사</dt><dd>{{ d.fm.manufacturer|replace("[[","")|replace("]]","")|replace("wiki/companies/","") }}</dd>{% endif %}
+      {% if d.fm.use_cases %}<dt>용도</dt><dd>{{ d.fm.use_cases|join(", ") }}</dd>{% endif %}
+      {% if d.fm.compatible_with %}<dt>호환</dt><dd>{{ d.fm.compatible_with|join(", ")|replace("[[","")|replace("]]","") }}</dd>{% endif %}
+      <dt>갱신</dt><dd>{{ d.updated }}</dd>
+    </dl></div>
+    {% if specs %}<div class="card"><h3>사양</h3><dl>{% for k, v in specs.items() %}<dt>{{ k }}</dt><dd>{{ v|join(", ") if v is iterable and v is not string and v is not mapping else v }}</dd>{% endfor %}</dl></div>{% endif %}
+    {% if d.fm.sources %}<div class="card"><h3>원문</h3><ul class="list">{% for s in d.fm.sources %}{% if s.url %}<li style="padding:8px 0"><a href="{{ s.url }}" target="_blank" rel="noopener">{{ s.title or s.url }}</a><div class="note">{{ s.publisher or "" }}{% if s.accessed %} · 확인 {{ s.accessed }}{% endif %}</div></li>{% endif %}{% endfor %}</ul></div>{% endif %}
+    {% if back %}<div class="card"><h3>이 문서를 참조하는 문서</h3><ul class="list">{% for b in back %}<li style="padding:6px 0"><a href="/doc/{{ b.path }}">{{ b.title }}</a></li>{% endfor %}</ul></div>{% endif %}
+  </aside>
+</div>
+{% endblock %}

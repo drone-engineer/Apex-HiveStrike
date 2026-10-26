@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="crumb">{{ path }}.md</div>
+<div class="layout">
+  <article class="doc">{{ html|safe }}</article>
+  <aside class="side"><div class="card"><dl>
+    <dt>공개 여부</dt><dd>{% if public %}<span class="badge ok">사용자 화면에 공개</span>{% else %}<span class="badge warn">비공개</span>{% endif %}</dd>
+    {% for k, v in fm.items() if k not in ("sources", "specs") %}<dt>{{ k }}</dt><dd>{{ v }}</dd>{% endfor %}
+  </dl></div></aside>
+</div>
+{% endblock %}

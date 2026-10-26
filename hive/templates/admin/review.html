@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block body %}
+<h1 class="page">위키 검토</h1>
+<p class="lead">승인된 문서만 사용자 화면에 나갑니다. 반려·재검토는 이유를 남기면 문서 끝 <code>## 검토 기록</code>과 디스코드 게시글에 기록됩니다.</p>
+<div class="chips">{% for s in ["검토중", "반려", "승인"] %}<a class="chip {{ 'on' if status == s else '' }}" href="?status={{ s }}">{{ s }} {{ counts.get(s, 0) }}</a>{% endfor %}</div>
+<div class="card"><ul class="list">
+{% for d in docs %}
+<li>
+  <span class="badge">{{ d.type|tk }}</span><a class="t" href="{{ view_url(d.path) }}">{{ d.title }}</a> <span class="note">· {{ d.path }} · 수정 {{ d.mtime }}</span>
+  <div class="note">{{ d.summary }}</div>
+  {% if not readonly %}<form method="post" action="{{ root }}/review/decide" class="inline" style="margin-top:8px">
+    <input type="hidden" name="path" value="{{ d.path }}"><input type="hidden" name="ret" value="{{ root }}/review?status={{ status }}">
+    <input class="reason" name="reason" placeholder="이유 (반려·재검토는 필수)">
+    {% if status != "승인" %}<button class="btn sm ok" name="status" value="승인">승인</button>{% endif %}
+    {% if status != "반려" %}<button class="btn sm bad" name="status" value="반려">반려</button>{% endif %}
+    {% if status != "검토중" %}<button class="btn sm ghost" name="status" value="검토중">재검토</button>{% endif %}
+  </form>{% endif %}
+</li>
+{% else %}<li class="note">{{ status }} 문서가 없습니다.</li>{% endfor %}
+</ul></div>
+{% endblock %}

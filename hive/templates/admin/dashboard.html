@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "admin/_bar.html" import bar %}
+{% block body %}
+<div class="chips">
+  <span class="chip {{ 'accent' if failed else '' }}">{% if failed %}예약 작업 확인 필요 {{ failed|length }}건{% else %}예약 작업 모두 정상{% endif %}</span>
+  <span class="chip">공개 자료 {{ exp.count }}건 · {{ exp.at or "아직 안 내보냄" }}</span>
+</div>
+<div class="crumb">관리자</div>
+<h1 class="page">지식과 수집 현황</h1>
+<p class="lead">사용자 화면에 내보내기 전에, 위키 문서와 수집 자료가 어디쯤인지 확인하는 화면입니다.</p>
+<div class="grid two">
+  <div class="card"><h3>위키 문서</h3><div class="big">{{ total }}</div><div class="note">허브(목차) 제외</div>
+    {% for t, n in types.most_common() %}{{ bar(t|tk, n, total) }}{% endfor %}
+    <a class="note" href="{{ root }}/browse">문서 보기</a></div>
+  <div class="card"><h3>게시 승인</h3><div class="big">{{ status.get("검토중", 0) }}</div><div class="note">사람이 확인해야 할 위키 문서</div>
+    {{ bar("승인", status.get("승인", 0), total, "ok") }}{{ bar("검토중", status.get("검토중", 0), total, "warn") }}{{ bar("반려", status.get("반려", 0), total, "bad") }}
+    <a class="note" href="{{ root }}/review">검토 목록</a></div>
+  <div class="card"><h3>수집함</h3><div class="big">{{ ib_status.get("검토중", 0) }}</div><div class="note">승인·보류·제외를 기다리는 자료 (전체 {{ ib_total }})</div>
+    {% for k, n in ib_kind.most_common() %}{{ bar(k, n, ib_status.get("검토중", 0)) }}{% endfor %}
+    {{ bar("보류", ib_status.get("보류", 0), ib_total, "warn") }}
+    <a class="note" href="{{ root }}/inbox">수집함 열기</a></div>
+  <div class="card"><h3>예약 작업</h3><div class="big">{{ jobs|selectattr("kind", "equalto", "ok")|list|length }}/{{ jobs|length }}</div><div class="note">마지막 실행이 성공한 작업</div>
+    <ul class="list">{% for j in jobs %}<li style="padding:6px 0"><span class="badge {{ j.kind }}">{{ j.state }}</span>{{ j.job }} <span class="note">{{ j.at }}</span></li>{% endfor %}</ul>
+    <a class="note" href="{{ root }}/jobs">로그 보기</a></div>
+</div>
+<div class="card" style="margin-top:16px"><h3>공개 사용자 화면</h3>
+  <p class="note">승인된 위키 문서 {{ public_count }}건이 공개 대상입니다. 사내 자료(workspaces {{ ws }}건)와 raw 원문 사본은 내보내지 않습니다. 승인·반려를 처리하면 자동으로 다시 내보냅니다.</p>
+  {% if not readonly %}<form method="post" action="{{ root }}/export" class="inline"><button class="btn sm">지금 다시 내보내기</button></form>{% endif %}</div>
+{% endblock %}

@@ -1,0 +1,1 @@
+{% macro bar(label, n, total, kind="") %}<div class="bar"><span>{{ label }}</span><div class="track"><div class="fill {{ kind }}" style="width:{{ (100 * n / total) if total else 0 }}%"></div></div><span>{{ n }}</span></div>{% endmacro %}
