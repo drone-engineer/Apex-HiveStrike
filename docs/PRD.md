@@ -1,6 +1,8 @@
 # PRD — Apex HiveStrike 드론 엔지니어링 지식 서비스
 
-- 작성일: 2026-10-26
+- 작성일: 2026-10-26 (같은 날 배포·평가 결과 반영)
+- 서비스 주소: https://apex-hivestrike.onrender.com (사용자 `/`, 관리자 `/admin`)
+- 저장소: https://github.com/drone-engineer/Apex-HiveStrike
 - 과제: OpenUp 풀스택B "오픈소스 AI 자동화 에이전트 프로젝트" — Obsidian 지식 베이스 + GraphRAG로 개인 업무를 자동화하는 AI 서비스
 - 저장소 구성: 웹 앱 `apex_hivestrike_web` (이 저장소) + 지식 원본 옵시디언 볼트(비공개, 승인된 위키만 내보내 사용)
 
@@ -46,8 +48,8 @@
 - F5. 전처리: `##` 절 단위로 나누고, 긴 절은 문단 경계에서 약 500자로 자른다. 각 조각 앞에 "문서 제목 — 절 제목"을 붙인다.
 
 ### 4.2 지능형 검색 (Neo4j · RAG · GraphRAG)
-- F6. 임베딩: `paraphrase-multilingual-MiniLM-L12-v2`(한국어 지원, 0.22GB, 무료 로컬 실행).
-- F7. 관계 그래프: `MANUFACTURED_BY`(제조사), `COMPATIBLE_WITH`(호환), `RELATED_TO`(관련 제품), `LINKS_TO`(본문 링크), `IN_CATEGORY`(분야), `CITES`(출처 URL). Neo4j(Aura Free)에 적재하고, 접속 정보가 없으면 같은 그래프를 파일에서 읽는다.
+- F6. 임베딩: `paraphrase-multilingual-MiniLM-L12-v2`(한국어 지원, 무료 로컬 실행). 문서 임베딩은 원본 모델로 만들고, 배포 서버의 질문 임베딩은 사전을 25만 → 4.4만 토큰으로 줄인 경량판을 쓴다(메모리 약 880MB → 약 350MB, 문서 조각 코사인 유사도 0.997 이상).
+- F7. 관계 그래프: `MANUFACTURED_BY`(제조사), `COMPATIBLE_WITH`(호환), `RELATED_TO`(관련 제품), `LINKS_TO`(본문 링크), `IN_CATEGORY`(분야), `CITES`(출처 URL). Neo4j(Aura, Google Cloud us-west1)에 적재한다 — 문서 184개, 관계선 약 1,630개. 접속 정보가 없거나 Neo4j에 연결할 수 없으면(Aura 무료 인스턴스 일시정지 등) 같은 그래프를 파일(`graph.json`)에서 읽는다. 사용 중인 저장소는 검색 화면과 `/healthz`에 표시한다.
 - F8. 검색 4가지: 키워드 / 벡터 / 키워드+벡터(RRF) / GraphRAG(키워드+벡터 상위 6조각 → 관계선 1단계 이웃 문서에서 질문과 가장 비슷한 조각 3개 추가, 관계 종류별 가중치).
 - F9. 사용자 화면 검색에서 4가지 방식을 바꿔 가며 볼 수 있고, 그래프로 추가된 결과는 관계 경로를 표시한다.
 
@@ -55,7 +57,7 @@
 - F10. LangGraph StateGraph: `classify → retrieve → generate → check → (rewrite → retrieve …) → finalize`.
 - F11. 질문 분류: 추천 / 비교 / 사실 / 범위밖. 범위 밖이면 답하지 않는다. 유형별로 답 형식이 다르다(추천: 후보·이유·장단점·비추천 상황·호환성 확인점).
 - F12. 근거 검사: ① 없는 자료 번호 인용 ② 단위가 붙은 수치인데 인용 없는 문장 ③ LLM이 판단한 자료에 없는 주장. 하나라도 있으면 검색어를 바꿔 다시 찾고(최대 2회), 끝까지 남으면 그 주장을 지우고 "근거를 찾지 못했습니다"로 바꾼다.
-- F13. LLM은 바꿔 끼울 수 있다: Gemini(API 키) / Claude(API 키) / Ollama 로컬(gemma4:26b). 없으면 답변 대신 검색 결과를 보여 준다.
+- F13. LLM은 바꿔 끼울 수 있다: Gemini(API 키) / Claude(API 키) / Ollama 로컬(gemma4:26b). 없으면 답변 대신 검색 결과를 보여 준다. 배포본은 `gemini-3.5-flash-lite`를 쓴다(`gemini-3.5-flash`는 무료 한도가 하루 20회라 답변 1건에 3~6회 호출하는 흐름에 맞지 않음). 모델이 각주식 인용 `[^1]`을 쓰면 `[1]`로 맞춘 뒤 근거 검사를 한다.
 - F14. 답변 화면에 근거 자료 목록([n] 링크), 그래프 확장 표시, LangGraph 처리 단계와 걸린 시간을 보여 준다.
 
 ### 4.4 관리자 화면
@@ -67,7 +69,8 @@
 ## 5. 비기능 요구사항
 - N1. **근거**: 답변의 사실·수치는 자료 번호로 인용한다. 근거 없으면 모른다고 답한다(F12로 강제).
 - N2. **보안**: 공개 저장소·배포 서버에는 앱 코드와 승인된 위키만. API 키는 `.env`/호스팅 비밀 변수에만. 관리자 외부 접속은 비밀번호 필수. 다른 사이트에서 보낸 POST 차단.
-- N3. **비용**: 임베딩·개발·평가는 로컬 모델(0원). 배포본 답변은 무료 한도가 있는 API를 쓰고, IP당 시간당 10회·하루 200회로 제한한다.
+- N3. **비용**: 임베딩·개발·평가는 로컬 모델(0원). 배포본은 무료 플랜만 쓴다 — Render Free(메모리 512MB, 15분 미사용 시 잠듦), Neo4j Aura, Gemini 무료 한도. 답변은 IP당 시간당 10회·하루 200회로 제한한다.
+- N6. **배포 제약**: Hugging Face Spaces는 Docker Space가 유료(PRO)로 바뀌어 쓰지 않았다(2026-10-26 확인). 같은 Dockerfile로 Render에 배포한다.
 - N4. **저작권**: `raw/` 원문 사본은 내부 근거 확인용이다. 서비스는 위키의 요약·번역과 원문 링크만 보여 준다.
 - N5. **반응형**: 휴대폰 폭(375px)에서 가로 스크롤 없이 동작한다.
 
@@ -76,15 +79,31 @@
 - 지표: 문서 적중률(LLM 없음), faithfulness, answer_relevancy, context_precision, context_recall.
 - 목표: GraphRAG가 관계 질문의 문서 적중률·context_recall에서 키워드·벡터보다 높을 것. LangGraph 근거 검사가 faithfulness를 단일 답변보다 높일 것.
 
+### 6.1 결과 (2026-10-26, `eval/report.md`)
+
+| 방식 | 충실도 | 답변 관련성 | 문맥 재현율 | 관계 질문 두 문서 |
+|---|---|---|---|---|
+| 키워드 | 0.933 | 0.592 | 0.593 | 8/9 |
+| 벡터 | 0.913 | 0.532 | 0.537 | 5/9 |
+| 키워드+벡터 | 0.965 | 0.664 | 0.741 | 8/9 |
+| GraphRAG | 0.947 | 0.678 | 0.741 | 9/9 |
+| GraphRAG + LangGraph | 0.952 | 0.711 | 0.741 | 9/9 |
+
+- 목표 ① 달성: GraphRAG가 관계 질문 9/9(벡터 5/9), 재현율 0.741(벡터 0.537).
+- 목표 ② 부분 달성: LangGraph 흐름의 충실도(0.952)는 단일 답변 GraphRAG(0.947)보다 약간 높지만 차이가 작다. 이번 세트에서는 근거 검사가 모두 1회에 통과해 재검색이 일어나지 않았다. 답변 관련성(0.711)은 가장 높다.
+- 한계: 같은 로컬 모델이 답하고 채점했다. 질문을 문서에서 자동 생성했다. 27문항.
+- 다음 평가: 위키에 없는 제품·가격을 묻는 질문을 따로 모아 근거 검사 루프의 효과를 잰다.
+
 ## 7. 범위 밖
 - 사내 자료(`workspaces/`) 검색, 방산·비밀 등급 자료.
 - 사용자 계정·대화 기록 저장.
 - 실시간 가격 조회.
+- 외부 개발자용 API·MCP 서버(키 발급·사용량 한도) — 다음 단계로 미룸(2026-10-26 결정).
 
 ## 8. 기술 스택
 | 단계 | 사용 |
 |---|---|
 | 지식 구축 | Obsidian, Python 수집 스크립트, launchd 예약 작업, 디스코드 승인 |
-| 지능형 검색 | fastembed(다국어 MiniLM), NumPy 코사인, Neo4j(Aura Free), RRF 하이브리드 |
+| 지능형 검색 | fastembed(다국어 MiniLM) + 경량판 ONNX Runtime, NumPy 코사인, Neo4j(Aura), RRF 하이브리드 |
 | 에이전트 | LangChain(ChatGoogleGenerativeAI / ChatAnthropic / ChatOllama), LangGraph, RAGAS |
-| 서비스 | FastAPI, Jinja2, Docker, Render(무료) |
+| 서비스 | FastAPI, Jinja2, Docker, Render(무료), GitHub 자동 배포 |
